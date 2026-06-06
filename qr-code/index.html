@@ -34,11 +34,10 @@
   <a class="back" href="../">← utils</a>
   <div class="card">
     <header><p class="eyebrow">Utility</p><h1>QR Code Generator <span>/ url or text</span></h1></header>
-    <textarea id="input" placeholder="Paste a URL or any text…"></textarea>
+    <textarea id="input" placeholder="Paste a URL or any text…" oninput="debouncedGenerate()"></textarea>
     <p class="label" style="margin-bottom:0.5rem">Size: <span id="sizeVal">256</span>px</p>
-    <div class="size-row"><input type="range" id="sizeSlider" min="128" max="512" step="32" value="256" oninput="document.getElementById('sizeVal').textContent=this.value"></div>
+    <div class="size-row"><input type="range" id="sizeSlider" min="128" max="512" step="32" value="256" oninput="document.getElementById('sizeVal').textContent=this.value; debouncedGenerate()"></div>
     <div class="btn-row">
-      <button class="btn-primary" onclick="generate()">Generate</button>
       <button class="btn-ghost" id="dlBtn" onclick="download()" style="display:none">Download PNG</button>
     </div>
     <div class="divider"></div>
@@ -46,16 +45,23 @@
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
-    let qrInstance = null;
+    let debounceTimer = null;
+    function debouncedGenerate() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(generate, 300);
+    }
     function generate() {
       const text = document.getElementById('input').value.trim();
-      if (!text) return;
-      const size = +document.getElementById('sizeSlider').value;
       const canvas = document.getElementById('qrCanvas');
+      if (!text) {
+        canvas.style.display = 'none';
+        document.getElementById('dlBtn').style.display = 'none';
+        return;
+      }
+      const size = +document.getElementById('sizeSlider').value;
       canvas.style.display = 'block';
       document.getElementById('dlBtn').style.display = 'inline-block';
       const container = document.createElement('div');
-      if (qrInstance) { canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height); }
       new QRCode(container, { text, width: size, height: size, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.H });
       setTimeout(() => {
         const img = container.querySelector('img') || container.querySelector('canvas');
