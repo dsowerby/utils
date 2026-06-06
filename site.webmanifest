@@ -1,0 +1,23 @@
+{
+  "name": "utils — dsowerby",
+  "short_name": "utils",
+  "description": "Small, focused tools for the web. No accounts, no tracking, no fluff.",
+  "start_url": "/utils/",
+  "scope": "/utils/",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#0e0e10",
+  "background_color": "#0e0e10",
+  "display": "standalone",
+  "orientation": "portrait"
+}
