@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Have I Been Pwned — utils</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 0.6rem; } h1 span { color: var(--muted); }
+    .note { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.75rem; line-height: 1.5; }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .input-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+    input[type="email"] { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; }
+    input[type="email"]:focus { border-color: var(--accent-dim); } input[type="email"]::placeholder { color: var(--muted); }
+    button.btn-primary { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.75rem 1.3rem; background: var(--accent); color: #0e0e10; transition: all 0.15s; white-space: nowrap; }
+    button.btn-primary:hover { background: #c9ff8a; }
+    button.btn-primary:disabled { opacity: 0.5; cursor: default; }
+    .result-box { border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; display: none; }
+    .result-box.pwned { background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); }
+    .result-box.clean { background: rgba(110,255,180,0.1); border: 1px solid rgba(110,255,180,0.3); }
+    .result-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .result-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .result-box.pwned .result-title { color: var(--danger); }
+    .result-box.clean .result-title { color: var(--good); }
+    .result-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+    .breach-count { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--danger); margin-top: 0.5rem; }
+    .divider { height: 1px; background: var(--border); margin: 0 0 1.25rem; }
+    .breach-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .breach-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; }
+    .breach-name { font-weight: 500; font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .breach-meta { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); }
+    .breach-classes { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+    .breach-class { font-family: 'Space Mono', monospace; font-size: 0.6rem; background: rgba(255,107,107,0.15); color: var(--danger); border-radius: 4px; padding: 0.15rem 0.45rem; }
+    .spinner { display: none; font-family: 'Space Mono', monospace; font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; }
+    .privacy-note { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+    .privacy-note strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Have I Been Pwned <span>/ breach checker</span></h1></header>
+    <p class="note">Check if your email address has appeared in a known data breach, using the <a href="https://haveibeenpwned.com" target="_blank" style="color:var(--accent)">Have I Been Pwned</a> API.</p>
+    <p class="label">Email address</p>
+    <div class="input-row">
+      <input type="email" id="emailInput" placeholder="you@example.com" onkeydown="if(event.key==='Enter')check()">
+      <button class="btn-primary" id="checkBtn" onclick="check()">Check</button>
+    </div>
+    <p class="spinner" id="spinner">Checking…</p>
+    <div class="result-box" id="resultBox">
+      <div class="result-icon" id="resultIcon"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-desc" id="resultDesc"></div>
+      <div class="breach-count" id="breachCount"></div>
+    </div>
+    <div id="breachArea" style="display:none">
+      <div class="divider"></div>
+      <p class="label" style="margin-bottom:0.75rem">Breaches found</p>
+      <div class="breach-list" id="breachList"></div>
+    </div>
+    <div style="margin-top:1.5rem">
+      <div class="privacy-note">
+        <strong>Privacy note:</strong> Your email address is sent directly to the Have I Been Pwned API over HTTPS. HIBP is a free, trusted public service run by security researcher Troy Hunt. No data is stored by this tool.
+      </div>
+    </div>
+  </div>
+  <script>
+    async function check() {
+      const email = document.getElementById('emailInput').value.trim();
+      if (!email || !email.includes('@')) return;
+      document.getElementById('checkBtn').disabled = true;
+      document.getElementById('spinner').style.display = 'block';
+      document.getElementById('resultBox').style.display = 'none';
+      document.getElementById('breachArea').style.display = 'none';
+      try {
+        const res = await fetch(`https://haveibeenpwned.com/api/v3/breachedaccount/${encodeURIComponent(email)}?truncateResponse=false`, {
+          headers: { 'hibp-api-key': '' }  // Public endpoint — no key needed for basic check
+        });
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('checkBtn').disabled = false;
+        if (res.status === 404) {
+          const box = document.getElementById('resultBox');
+          box.className = 'result-box clean'; box.style.display = 'block';
+          document.getElementById('resultIcon').textContent = '✅';
+          document.getElementById('resultTitle').textContent = 'No breaches found';
+          document.getElementById('resultDesc').textContent = `Good news — ${email} hasn't appeared in any known data breaches.`;
+          document.getElementById('breachCount').textContent = '';
+        } else if (res.status === 200) {
+          const data = await res.json();
+          const box = document.getElementById('resultBox');
+          box.className = 'result-box pwned'; box.style.display = 'block';
+          document.getElementById('resultIcon').textContent = '⚠️';
+          document.getElementById('resultTitle').textContent = 'Pwned!';
+          document.getElementById('resultDesc').textContent = `${email} was found in ${data.length} data breach${data.length===1?'':'es'}. You should change your passwords for the affected services.`;
+          document.getElementById('breachCount').textContent = '';
+          document.getElementById('breachArea').style.display = 'block';
+          document.getElementById('breachList').innerHTML = data.map(b => `
+            <div class="breach-item">
+              <div class="breach-name">${b.Title||b.Name}</div>
+              <div class="breach-meta">${b.BreachDate||''} · ${(b.PwnCount||0).toLocaleString()} accounts</div>
+              <div class="breach-classes">${(b.DataClasses||[]).map(c=>`<span class="breach-class">${c}</span>`).join('')}</div>
+            </div>`).join('');
+        } else if (res.status === 401) {
+          showError('This check requires a HIBP API key. Get one free at haveibeenpwned.com/API/Key');
+        } else if (res.status === 429) {
+          showError('Rate limited — please wait a moment and try again.');
+        } else {
+          showError('Unexpected response: ' + res.status);
+        }
+      } catch(e) {
+        document.getElementById('spinner').style.display = 'none';
+        document.getElementById('checkBtn').disabled = false;
+        showError('Could not reach the HIBP API. Check your connection or try again.');
+      }
+    }
+    function showError(msg) {
+      const box = document.getElementById('resultBox');
+      box.className = 'result-box pwned'; box.style.display = 'block';
+      document.getElementById('resultIcon').textContent = '⚠️';
+      document.getElementById('resultTitle').textContent = 'Error';
+      document.getElementById('resultDesc').textContent = msg;
+      document.getElementById('breachCount').textContent = '';
+    }
+  </script>
+</body>
+</html>

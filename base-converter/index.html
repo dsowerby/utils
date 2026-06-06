@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Number Base Converter — utils</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .bases { display: flex; flex-direction: column; gap: 0.75rem; }
+    .base-row { display: grid; grid-template-columns: 90px 1fr auto; gap: 0.75rem; align-items: center; }
+    .base-label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .base-label span { display: block; font-size: 0.55rem; color: var(--border); margin-top: 0.2rem; }
+    input.base-input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.9rem; padding: 0.7rem 0.9rem; outline: none; transition: border-color 0.2s; width: 100%; letter-spacing: 0.05em; }
+    input.base-input:focus { border-color: var(--accent-dim); }
+    input.base-input.error { border-color: var(--danger); }
+    .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; padding: 0.5rem 0.7rem; border-radius: 6px; cursor: pointer; font-family: 'Space Mono', monospace; transition: all 0.15s; white-space: nowrap; }
+    .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+    .copy-btn.copied { color: var(--good); border-color: var(--good); }
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+    .error-msg { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--danger); min-height: 1.2em; margin-top: 0.5rem; }
+    .bit-display { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--muted); line-height: 1.8; word-break: break-all; }
+    .bit-display span { color: var(--accent); }
+    .nibble { margin-right: 0.5rem; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Base Converter <span>/ dec · hex · bin · oct</span></h1></header>
+    <div class="bases">
+      <div class="base-row">
+        <div class="base-label">Decimal<span>Base 10</span></div>
+        <input class="base-input" id="dec" type="text" placeholder="255" oninput="convert(this,'dec')">
+        <button class="copy-btn" onclick="cp('dec',this)">Copy</button>
+      </div>
+      <div class="base-row">
+        <div class="base-label">Hex<span>Base 16</span></div>
+        <input class="base-input" id="hex" type="text" placeholder="FF" oninput="convert(this,'hex')">
+        <button class="copy-btn" onclick="cp('hex',this)">Copy</button>
+      </div>
+      <div class="base-row">
+        <div class="base-label">Binary<span>Base 2</span></div>
+        <input class="base-input" id="bin" type="text" placeholder="11111111" oninput="convert(this,'bin')">
+        <button class="copy-btn" onclick="cp('bin',this)">Copy</button>
+      </div>
+      <div class="base-row">
+        <div class="base-label">Octal<span>Base 8</span></div>
+        <input class="base-input" id="oct" type="text" placeholder="377" oninput="convert(this,'oct')">
+        <button class="copy-btn" onclick="cp('oct',this)">Copy</button>
+      </div>
+    </div>
+    <p class="error-msg" id="err"></p>
+    <div class="divider"></div>
+    <p style="font-family:'Space Mono',monospace;font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem">Binary groups</p>
+    <div class="bit-display" id="bitDisplay">—</div>
+  </div>
+  <script>
+    const RADIX = { dec:10, hex:16, bin:2, oct:8 };
+    function convert(el, from) {
+      const raw = el.value.trim();
+      document.getElementById('err').textContent = '';
+      document.querySelectorAll('.base-input').forEach(i => i.classList.remove('error'));
+      if (!raw) { ['dec','hex','bin','oct'].filter(b=>b!==from).forEach(b=>document.getElementById(b).value=''); document.getElementById('bitDisplay').innerHTML='—'; return; }
+      let num;
+      try { num = parseInt(raw, RADIX[from]); } catch(e) { num = NaN; }
+      if (isNaN(num) || num < 0) { el.classList.add('error'); document.getElementById('err').textContent = 'Invalid '+from+' value'; return; }
+      if (from!=='dec') document.getElementById('dec').value = num.toString(10);
+      if (from!=='hex') document.getElementById('hex').value = num.toString(16).toUpperCase();
+      if (from!=='bin') document.getElementById('bin').value = num.toString(2);
+      if (from!=='oct') document.getElementById('oct').value = num.toString(8);
+      // Bit groups display
+      const bits = num.toString(2).padStart(Math.ceil(num.toString(2).length/8)*8,'0');
+      const nibbles = bits.match(/.{1,4}/g)||[];
+      const bytes = bits.match(/.{1,8}/g)||[];
+      document.getElementById('bitDisplay').innerHTML =
+        '<span style="color:var(--muted)">Nibbles: </span>' + nibbles.map(n=>`<span class="nibble">${n}</span>`).join(' ') +
+        '<br><span style="color:var(--muted)">Bytes: </span>' + bytes.map(b=>`<span class="nibble">${b}</span>`).join(' ') +
+        `<br><span style="color:var(--muted)">Bit length: </span><span>${bits.length}</span>`;
+    }
+    function cp(id, btn) {
+      const v = document.getElementById(id).value; if (!v) return;
+      navigator.clipboard.writeText(v).then(() => { btn.textContent='Copied!'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000); });
+    }
+  </script>
+</body>
+</html>

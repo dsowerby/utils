@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sort Lines — utils</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 760px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    textarea { width: 100%; height: 260px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.8rem; padding: 1rem; resize: none; outline: none; transition: border-color 0.2s; line-height: 1.7; }
+    textarea:focus { border-color: var(--accent-dim); } textarea::placeholder { color: var(--muted); }
+    .options { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.6rem; margin-bottom: 1.25rem; }
+    .opt-group { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1rem; }
+    .opt-title { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+    .sort-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .stab { font-family: 'Space Mono', monospace; font-size: 0.62rem; padding: 0.3rem 0.65rem; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+    .stab.active { background: var(--accent); color: #0e0e10; border-color: var(--accent); }
+    .checks { display: flex; flex-direction: column; gap: 0.45rem; }
+    .check-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.83rem; color: var(--text); user-select: none; }
+    .check-label input { display: none; }
+    .check-box { width: 15px; height: 15px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; flex-shrink: 0; transition: all 0.15s; }
+    .check-label input:checked + .check-box { background: var(--accent); border-color: var(--accent); color: #0e0e10; }
+    .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0; }
+    button.btn-primary { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; background: var(--accent); color: #0e0e10; transition: all 0.15s; }
+    button.btn-primary:hover { background: #c9ff8a; }
+    button.btn-ghost { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; background: transparent; color: var(--muted); transition: all 0.15s; }
+    button.btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    button.btn-ghost.copied { color: var(--good); border-color: var(--good); }
+    .stat { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 0.5rem; }
+    .stat span { color: var(--accent); }
+    @media (max-width: 600px) { .panes { grid-template-columns: 1fr; } textarea { height: 180px; } }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Sort Lines <span>/ trim · dedupe · reorder</span></h1></header>
+
+    <div class="options">
+      <div class="opt-group">
+        <p class="opt-title">Sort order</p>
+        <div class="sort-tabs">
+          <button class="stab active" data-sort="asc" onclick="setSort(this)">A → Z</button>
+          <button class="stab" data-sort="desc" onclick="setSort(this)">Z → A</button>
+          <button class="stab" data-sort="len-asc" onclick="setSort(this)">Shortest</button>
+          <button class="stab" data-sort="len-desc" onclick="setSort(this)">Longest</button>
+          <button class="stab" data-sort="shuffle" onclick="setSort(this)">Shuffle</button>
+          <button class="stab" data-sort="reverse" onclick="setSort(this)">Reverse</button>
+        </div>
+      </div>
+      <div class="opt-group">
+        <p class="opt-title">Trim whitespace</p>
+        <div class="checks">
+          <label class="check-label"><input type="checkbox" id="trimLeading" checked><span class="check-box">✓</span> Trim leading spaces</label>
+          <label class="check-label"><input type="checkbox" id="trimTrailing" checked><span class="check-box">✓</span> Trim trailing spaces</label>
+        </div>
+      </div>
+      <div class="opt-group">
+        <p class="opt-title">Lines</p>
+        <div class="checks">
+          <label class="check-label"><input type="checkbox" id="removeBlanks"><span class="check-box">✓</span> Remove blank lines</label>
+          <label class="check-label"><input type="checkbox" id="removeDupes"><span class="check-box">✓</span> Remove duplicates</label>
+          <label class="check-label"><input type="checkbox" id="ignoreCase"><span class="check-box">✓</span> Ignore case (sort)</label>
+          <label class="check-label"><input type="checkbox" id="numberLines"><span class="check-box">✓</span> Number lines</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="panes">
+      <div><p class="label">Input</p><textarea id="input" placeholder="Paste lines here…" oninput="process()"></textarea></div>
+      <div><p class="label">Output</p><textarea id="output" readonly placeholder="Result will appear here…"></textarea></div>
+    </div>
+    <p class="stat" id="stat"></p>
+    <div class="btn-row" style="margin-top:1rem">
+      <button class="btn-ghost" id="copyBtn" onclick="copyOut()">Copy</button>
+      <button class="btn-ghost" onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+  <script>
+    let sortMode = 'asc';
+    function setSort(btn) {
+      document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sortMode = btn.dataset.sort;
+      process();
+    }
+    document.querySelectorAll('input[type=checkbox]').forEach(el => el.addEventListener('change', process));
+
+    function process() {
+      const raw = document.getElementById('input').value;
+      if (!raw) { document.getElementById('output').value = ''; document.getElementById('stat').innerHTML = ''; return; }
+
+      let lines = raw.split('\n');
+      const trimLeading  = document.getElementById('trimLeading').checked;
+      const trimTrailing = document.getElementById('trimTrailing').checked;
+      const removeBlanks = document.getElementById('removeBlanks').checked;
+      const removeDupes  = document.getElementById('removeDupes').checked;
+      const ignoreCase   = document.getElementById('ignoreCase').checked;
+      const numberLines  = document.getElementById('numberLines').checked;
+
+      // Trim
+      lines = lines.map(l => {
+        if (trimLeading)  l = l.replace(/^\s+/, '');
+        if (trimTrailing) l = l.replace(/\s+$/, '');
+        return l;
+      });
+
+      // Remove blanks
+      if (removeBlanks) lines = lines.filter(l => l.trim() !== '');
+
+      // Remove dupes (case-aware)
+      if (removeDupes) {
+        const seen = new Set();
+        lines = lines.filter(l => {
+          const key = ignoreCase ? l.toLowerCase() : l;
+          if (seen.has(key)) return false;
+          seen.add(key); return true;
+        });
+      }
+
+      // Sort
+      const inCount = lines.length;
+      if (sortMode === 'asc')      lines.sort((a,b) => (ignoreCase?a.toLowerCase():a).localeCompare(ignoreCase?b.toLowerCase():b));
+      else if (sortMode === 'desc') lines.sort((a,b) => (ignoreCase?b.toLowerCase():b).localeCompare(ignoreCase?a.toLowerCase():a));
+      else if (sortMode === 'len-asc')  lines.sort((a,b) => a.length - b.length);
+      else if (sortMode === 'len-desc') lines.sort((a,b) => b.length - a.length);
+      else if (sortMode === 'reverse')  lines.reverse();
+      else if (sortMode === 'shuffle')  { for (let i=lines.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[lines[i],lines[j]]=[lines[j],lines[i]];} }
+
+      // Number
+      if (numberLines) {
+        const pad = String(lines.length).length;
+        lines = lines.map((l,i) => String(i+1).padStart(pad,' ') + '.  ' + l);
+      }
+
+      document.getElementById('output').value = lines.join('\n');
+      const outCount = lines.length;
+      const diff = inCount - outCount;
+      document.getElementById('stat').innerHTML =
+        `<span>${outCount}</span> line${outCount===1?'':'s'}` +
+        (diff > 0 ? ` — <span>${diff}</span> removed` : '');
+    }
+
+    function copyOut() {
+      const t = document.getElementById('output').value; if (!t) return;
+      navigator.clipboard.writeText(t).then(() => {
+        const b = document.getElementById('copyBtn'); b.textContent='Copied!'; b.classList.add('copied');
+        setTimeout(() => { b.textContent='Copy'; b.classList.remove('copied'); }, 2000);
+      });
+    }
+    function clearAll() { document.getElementById('input').value=''; document.getElementById('output').value=''; document.getElementById('stat').innerHTML=''; }
+  </script>
+</body>
+</html>

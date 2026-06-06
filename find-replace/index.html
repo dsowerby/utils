@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Find & Replace — utils</title>
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 760px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .fr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+    input.fr-input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.85rem; padding: 0.7rem 0.9rem; outline: none; transition: border-color 0.2s; width: 100%; }
+    input.fr-input:focus { border-color: var(--accent-dim); } input.fr-input::placeholder { color: var(--muted); }
+    .options { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .check-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem; user-select: none; }
+    .check-label input { display: none; }
+    .check-box { width: 15px; height: 15px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; transition: all 0.15s; }
+    .check-label input:checked + .check-box { background: var(--accent); border-color: var(--accent); color: #0e0e10; }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem; }
+    textarea { width: 100%; height: 240px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.8rem; padding: 1rem; resize: none; outline: none; transition: border-color 0.2s; line-height: 1.7; }
+    textarea:focus { border-color: var(--accent-dim); } textarea::placeholder { color: var(--muted); }
+    .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    button.btn-primary { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; background: var(--accent); color: #0e0e10; transition: all 0.15s; }
+    button.btn-primary:hover { background: #c9ff8a; }
+    button.btn-ghost { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; background: transparent; color: var(--muted); transition: all 0.15s; }
+    button.btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    button.btn-ghost.copied { color: var(--good); border-color: var(--good); }
+    .stat { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--muted); margin-top: 0.6rem; }
+    .stat span { color: var(--accent); }
+    .error { color: var(--danger); font-family: 'Space Mono', monospace; font-size: 0.72rem; }
+    @media (max-width: 600px) { .panes,.fr-grid { grid-template-columns: 1fr; } textarea { height: 160px; } }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Find &amp; Replace <span>/ with regex support</span></h1></header>
+    <div class="fr-grid">
+      <div><p class="label">Find</p><input class="fr-input" id="find" placeholder="Search…" oninput="run()"></div>
+      <div><p class="label">Replace with</p><input class="fr-input" id="replace" placeholder="Replacement…" oninput="run()"></div>
+    </div>
+    <div class="options">
+      <label class="check-label"><input type="checkbox" id="useRegex" onchange="run()"><span class="check-box">✓</span> Regex</label>
+      <label class="check-label"><input type="checkbox" id="ignoreCase" checked onchange="run()"><span class="check-box">✓</span> Ignore case</label>
+      <label class="check-label"><input type="checkbox" id="multiline" onchange="run()"><span class="check-box">✓</span> Multiline</label>
+      <label class="check-label"><input type="checkbox" id="replaceAll" checked onchange="run()"><span class="check-box">✓</span> Replace all</label>
+    </div>
+    <div class="panes">
+      <div><p class="label">Input</p><textarea id="input" placeholder="Paste text here…" oninput="run()"></textarea></div>
+      <div><p class="label">Output</p><textarea id="output" readonly placeholder="Result will appear here…"></textarea></div>
+    </div>
+    <p class="stat" id="stat"></p>
+    <p class="error" id="err"></p>
+    <div class="btn-row" style="margin-top:1rem">
+      <button class="btn-ghost" id="copyBtn" onclick="copyOut()">Copy</button>
+      <button class="btn-ghost" onclick="document.getElementById('input').value='';document.getElementById('output').value='';document.getElementById('stat').innerHTML='';document.getElementById('err').textContent=''">Clear</button>
+    </div>
+  </div>
+  <script>
+    function run() {
+      const input = document.getElementById('input').value;
+      const find = document.getElementById('find').value;
+      const replace = document.getElementById('replace').value;
+      const useRegex = document.getElementById('useRegex').checked;
+      const ignoreCase = document.getElementById('ignoreCase').checked;
+      const multiline = document.getElementById('multiline').checked;
+      const replaceAll = document.getElementById('replaceAll').checked;
+      document.getElementById('err').textContent = '';
+      if (!find || !input) { document.getElementById('output').value = input; document.getElementById('stat').innerHTML=''; return; }
+      let flags = replaceAll ? 'g' : '';
+      if (ignoreCase) flags += 'i';
+      if (multiline) flags += 'm';
+      let count = 0;
+      try {
+        const pattern = useRegex ? new RegExp(find, flags) : new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), flags);
+        const matches = [...input.matchAll(new RegExp(pattern.source, pattern.flags.includes('g')?pattern.flags:pattern.flags+'g'))];
+        count = matches.length;
+        document.getElementById('output').value = input.replace(pattern, replace);
+        document.getElementById('stat').innerHTML = count > 0 ? `<span>${count}</span> match${count===1?'':'es'} replaced` : 'No matches found';
+      } catch(e) {
+        document.getElementById('err').textContent = 'Invalid regex: ' + e.message;
+        document.getElementById('output').value = '';
+      }
+    }
+    function copyOut() {
+      const t = document.getElementById('output').value; if (!t) return;
+      navigator.clipboard.writeText(t).then(() => { const b=document.getElementById('copyBtn'); b.textContent='Copied!'; b.classList.add('copied'); setTimeout(()=>{b.textContent='Copy';b.classList.remove('copied');},2000); });
+    }
+  </script>
+</body>
+</html>
