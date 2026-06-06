@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Formatter — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0e10; --surface: #18181c; --border: #2a2a32;
+      --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee;
+      --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4;
+      --json-key: #79c0ff; --json-str: #a5d6ff; --json-num: #ffa657; --json-bool: #ff7b72; --json-null: #8b949e;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 760px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; color: var(--text); line-height: 1.2; margin-bottom: 2rem; }
+    h1 span { color: var(--muted); }
+    .pane-label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    textarea { width: 100%; min-height: 160px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.78rem; padding: 1rem; resize: vertical; outline: none; transition: border-color 0.2s; line-height: 1.6; margin-bottom: 0.75rem; }
+    textarea:focus { border-color: var(--accent-dim); }
+    textarea::placeholder { color: var(--muted); }
+    textarea.error-border { border-color: var(--danger); }
+    .btn-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    button { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.87rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.6rem 1.15rem; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #0e0e10; }
+    .btn-primary:hover { background: #c9ff8a; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .error { color: var(--danger); font-size: 0.78rem; font-family: 'Space Mono', monospace; min-height: 1.2em; margin-bottom: 0.75rem; }
+    .divider { height: 1px; background: var(--border); margin: 0.5rem 0 1.5rem; }
+    .output-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-family: 'Space Mono', monospace; font-size: 0.78rem; line-height: 1.7; overflow-x: auto; white-space: pre; margin-bottom: 0.75rem; min-height: 60px; }
+    .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; padding: 0.45rem 1rem; border-radius: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
+    .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+    .copy-btn.copied { color: var(--good); border-color: var(--good); }
+    .stat-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .stat { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--muted); }
+    .stat span { color: var(--accent); }
+    /* syntax highlighting */
+    .jk { color: var(--json-key); }
+    .js { color: var(--json-str); }
+    .jn { color: var(--json-num); }
+    .jb { color: var(--json-bool); }
+    .jz { color: var(--json-null); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header>
+      <p class="eyebrow">Utility</p>
+      <h1>JSON Formatter <span>/ prettify · minify · validate</span></h1>
+    </header>
+
+    <p class="pane-label">Input</p>
+    <textarea id="input" placeholder='Paste JSON here… e.g. {"name":"Dave","active":true}'></textarea>
+    <p class="error" id="errorMsg"></p>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="prettify()">Prettify</button>
+      <button class="btn-primary" onclick="minify()">Minify</button>
+      <button class="btn-ghost" onclick="validate()">Validate</button>
+      <button class="btn-ghost" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="pane-label">Output</p>
+    <div class="stat-row" id="statRow" style="display:none">
+      <span class="stat">Keys: <span id="statKeys">—</span></span>
+      <span class="stat">Size: <span id="statSize">—</span></span>
+      <span class="stat">Depth: <span id="statDepth">—</span></span>
+    </div>
+    <div class="output-box" id="output"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyOutput()">Copy</button>
+  </div>
+
+  <script>
+    let lastParsed = null;
+
+    function parse() {
+      const raw = document.getElementById('input').value.trim();
+      document.getElementById('errorMsg').textContent = '';
+      document.getElementById('input').classList.remove('error-border');
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch(e) {
+        document.getElementById('errorMsg').textContent = 'Invalid JSON: ' + e.message;
+        document.getElementById('input').classList.add('error-border');
+        return null;
+      }
+    }
+
+    function highlight(str) {
+      return str.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) return `<span class="jk">${match}</span>`;
+          return `<span class="js">${match}</span>`;
+        }
+        if (/true|false/.test(match)) return `<span class="jb">${match}</span>`;
+        if (/null/.test(match)) return `<span class="jz">${match}</span>`;
+        return `<span class="jn">${match}</span>`;
+      });
+    }
+
+    function countKeys(obj, depth=0) {
+      if (typeof obj !== 'object' || obj === null) return { keys: 0, depth };
+      let keys = 0, maxDepth = depth;
+      for (const k in obj) {
+        keys++;
+        const sub = countKeys(obj[k], depth+1);
+        keys += sub.keys;
+        maxDepth = Math.max(maxDepth, sub.depth);
+      }
+      return { keys, depth: maxDepth };
+    }
+
+    function showStats(obj, str) {
+      const { keys, depth } = countKeys(obj);
+      document.getElementById('statRow').style.display = 'flex';
+      document.getElementById('statKeys').textContent = keys;
+      document.getElementById('statSize').textContent = new Blob([str]).size + ' B';
+      document.getElementById('statDepth').textContent = depth;
+    }
+
+    function prettify() {
+      const obj = parse();
+      if (obj === null && document.getElementById('errorMsg').textContent) return;
+      const str = JSON.stringify(obj, null, 2);
+      document.getElementById('output').innerHTML = highlight(str);
+      lastParsed = str;
+      showStats(obj, str);
+    }
+
+    function minify() {
+      const obj = parse();
+      if (obj === null && document.getElementById('errorMsg').textContent) return;
+      const str = JSON.stringify(obj);
+      document.getElementById('output').innerHTML = highlight(str);
+      lastParsed = str;
+      showStats(obj, str);
+    }
+
+    function validate() {
+      const obj = parse();
+      if (obj === null && document.getElementById('errorMsg').textContent) {
+        document.getElementById('output').innerHTML = '<span style="color:var(--danger)">✗ Invalid JSON</span>';
+        document.getElementById('statRow').style.display = 'none';
+        return;
+      }
+      document.getElementById('output').innerHTML = '<span style="color:var(--good)">✓ Valid JSON</span>';
+      showStats(obj, JSON.stringify(obj));
+    }
+
+    function clearAll() {
+      document.getElementById('input').value = '';
+      document.getElementById('output').innerHTML = '';
+      document.getElementById('errorMsg').textContent = '';
+      document.getElementById('input').classList.remove('error-border');
+      document.getElementById('statRow').style.display = 'none';
+      lastParsed = null;
+    }
+
+    function copyOutput() {
+      const text = lastParsed || document.getElementById('output').textContent;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copied!'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>

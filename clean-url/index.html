@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Cleaner</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e10;
+      --surface: #18181c;
+      --border: #2a2a32;
+      --accent: #b4ff6e;
+      --accent-dim: #7ab844;
+      --text: #e8e8ee;
+      --muted: #6b6b7a;
+      --danger: #ff6b6b;
+      --good: #6effb4;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    .back {
+      align-self: flex-start;
+      margin-bottom: 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color 0.15s;
+    }
+    .back:hover { color: var(--accent); }
+
+    .card {
+      width: 100%;
+      max-width: 680px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: 0 0 60px rgba(180, 255, 110, 0.04);
+    }
+
+    header {
+      margin-bottom: 2rem;
+    }
+
+    .eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    h1 span {
+      color: var(--muted);
+    }
+
+    .input-wrap {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 90px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      padding: 1rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+
+    textarea:focus { border-color: var(--accent-dim); }
+    textarea::placeholder { color: var(--muted); }
+
+    .btn-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 0.65rem 1.3rem;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0e0e10;
+    }
+    .btn-primary:hover { background: #c9ff8a; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.75rem 0;
+    }
+
+    .result-section { display: none; }
+    .result-section.visible { display: block; }
+
+    .result-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .clean-url-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--good);
+      word-break: break-all;
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+      margin-bottom: 1.5rem;
+    }
+    .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+    .copy-btn.copied { color: var(--good); border-color: var(--good); }
+
+    .stripped-params { margin-top: 0.25rem; }
+
+    .param-header {
+      display: grid;
+      grid-template-columns: 140px 1fr 1fr;
+      gap: 0.5rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--accent-dim);
+      margin-bottom: 0.1rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .param-row {
+      display: grid;
+      grid-template-columns: 140px 1fr 1fr;
+      gap: 0.5rem;
+      align-items: baseline;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.84rem;
+    }
+    .param-row:last-child { border-bottom: none; }
+
+    .param-key {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--danger);
+    }
+
+    .param-desc {
+      font-size: 0.78rem;
+      color: var(--text);
+      opacity: 0.6;
+    }
+
+    .param-val {
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-family: 'Space Mono', monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .none-msg {
+      color: var(--good);
+      font-size: 0.85rem;
+      padding: 0.5rem 0;
+    }
+
+    .custom-section {
+      margin-top: 1.5rem;
+    }
+
+    .custom-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.15s;
+    }
+    .custom-toggle:hover { color: var(--text); }
+
+    .toggle-arrow {
+      display: inline-block;
+      transition: transform 0.2s ease;
+      font-style: normal;
+      font-size: 0.7rem;
+    }
+    .toggle-arrow.open { transform: rotate(90deg); }
+
+    .custom-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease, opacity 0.2s ease;
+      opacity: 0;
+    }
+    .custom-body.open {
+      max-height: 2000px;
+      opacity: 1;
+    }
+
+    .custom-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .custom-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+
+    .custom-row input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      padding: 0.45rem 0.75rem;
+      outline: none;
+      flex: 1;
+      transition: border-color 0.2s;
+    }
+    .custom-row input:focus { border-color: var(--accent-dim); }
+
+    .remove-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.75rem;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .remove-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+    .add-param-btn {
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      font-size: 0.8rem;
+      padding: 0.45rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .add-param-btn:hover { color: var(--text); border-color: var(--muted); }
+
+  </style>
+</head>
+<body>
+
+<a class="back" href="../">← utils</a>
+<div class="card">
+  <header>
+    <p class="eyebrow">Utility</p>
+    <h1>URL Cleaner <span>/ strip trackers</span></h1>
+  </header>
+
+  <div class="input-wrap">
+    <textarea id="urlInput" placeholder="Paste a URL here…"></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-primary" onclick="clean()">Clean URL</button>
+    <button class="btn-ghost" onclick="reset()">Clear</button>
+  </div>
+
+  <div class="custom-section">
+    <button class="custom-toggle" onclick="toggleParams()">
+      <i class="toggle-arrow" id="toggleArrow">&#9654;</i>
+      Parameters to remove
+    </button>
+    <div class="custom-body" id="customBody">
+      <div style="height: 0.75rem"></div>
+      <div id="paramList"></div>
+      <button class="add-param-btn" onclick="addParam()">+ Add parameter</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="result-section" id="resultSection">
+    <p class="result-label">Clean URL</p>
+    <div class="clean-url-box" id="cleanUrl"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Copy</button>
+
+    <button class="custom-toggle" onclick="toggleStripped()" id="strippedToggle" style="margin-bottom: 0;">
+      <i class="toggle-arrow" id="strippedArrow">&#9654;</i>
+      Stripped parameters
+    </button>
+    <div class="custom-body" id="strippedBody">
+      <div style="height: 0.5rem"></div>
+      <div class="stripped-params" id="strippedParams"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PARAM_DESCRIPTIONS = {
+    // UTM
+    utm_source:         'UTM — traffic source (e.g. Facebook, newsletter)',
+    utm_medium:         'UTM — marketing medium (e.g. email, cpc)',
+    utm_campaign:       'UTM — campaign name',
+    utm_term:           'UTM — paid search keyword',
+    utm_content:        'UTM — ad variant identifier',
+    utm_id:             'UTM — campaign ID',
+    // Facebook / Meta
+    fbclid:             'Facebook Click Identifier',
+    // Google
+    gclid:              'Google Ads Click Identifier',
+    gclsrc:             'Google Click source (DoubleClick)',
+    dclid:              'Google Display Click Identifier',
+    gbraid:             'Google Ads — app conversion (iOS)',
+    wbraid:             'Google Ads — web conversion (iOS)',
+    _ga:                'Google Analytics client ID',
+    _gl:                'Google Analytics cross-domain linker',
+    // Microsoft / Bing
+    msclkid:            'Microsoft / Bing Ads Click Identifier',
+    // Twitter / X
+    twclid:             'Twitter/X Click Identifier',
+    // LinkedIn
+    li_fat_id:          'LinkedIn First-Party Ad Tracking ID',
+    // Instagram
+    igshid:             'Instagram Share Identifier',
+    // TikTok
+    ttclid:             'TikTok Click Identifier',
+    // Pinterest
+    epik:               'Pinterest Click Identifier',
+    // Reddit
+    rdt_cid:            'Reddit Click Identifier',
+    // Snapchat
+    ScCid:              'Snapchat Click Identifier',
+    // Mailchimp
+    mc_cid:             'Mailchimp campaign ID',
+    mc_eid:             'Mailchimp email subscriber ID',
+    // ConvertKit
+    ck_subscriber_id:   'ConvertKit subscriber ID',
+    // Vero
+    vero_id:            'Vero email subscriber ID',
+    vero_conv:          'Vero conversion tracker',
+    // Drip
+    __s:                'Drip email subscriber hash',
+    // HubSpot
+    _hsenc:             'HubSpot email tracking token',
+    _hsmi:              'HubSpot email message ID',
+    hsCtaTracking:      'HubSpot call-to-action tracker',
+    // Marketo
+    mkt_tok:            'Marketo email tracking token',
+    // Generic
+    trk:                'Generic tracking identifier',
+    // Google Shopping
+    srsltid:            'Google Shopping result click ID',
+    // Amazon
+    tag:                'Amazon affiliate tag',
+    // Awin / Zanox
+    zanpid:             'Awin/Zanox affiliate ID',
+    // Misc
+    ref:                'Referral source',
+    source:             'Traffic source',
+  };
+
+  const DEFAULT_PARAMS = Object.keys(PARAM_DESCRIPTIONS);
+
+  function toggleStripped() {
+    const body = document.getElementById('strippedBody');
+    const arrow = document.getElementById('strippedArrow');
+    const isOpen = body.classList.toggle('open');
+    arrow.classList.toggle('open', isOpen);
+  }
+
+  function toggleParams() {
+    const body = document.getElementById('customBody');
+    const arrow = document.getElementById('toggleArrow');
+    const isOpen = body.classList.toggle('open');
+    arrow.classList.toggle('open', isOpen);
+  }
+
+  function renderParams() {
+    const list = document.getElementById('paramList');
+    list.innerHTML = '';
+    DEFAULT_PARAMS.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'custom-row';
+      row.innerHTML = `
+        <input type="text" value="${p}" onchange="DEFAULT_PARAMS[${i}] = this.value" />
+        <button class="remove-btn" onclick="removeParam(${i})">✕</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  function removeParam(i) {
+    DEFAULT_PARAMS.splice(i, 1);
+    renderParams();
+  }
+
+  function addParam() {
+    DEFAULT_PARAMS.push('');
+    renderParams();
+    const inputs = document.querySelectorAll('.custom-row input');
+    const last = inputs[inputs.length - 1];
+    last.focus();
+    last.onchange = (e) => { DEFAULT_PARAMS[DEFAULT_PARAMS.length - 1] = e.target.value; };
+  }
+
+  function clean() {
+    const raw = document.getElementById('urlInput').value.trim();
+    if (!raw) return;
+
+    let url;
+    try { url = new URL(raw); }
+    catch { alert('That doesn\'t look like a valid URL.'); return; }
+
+    const stripped = [];
+    const toRemove = DEFAULT_PARAMS.filter(Boolean).map(p => p.trim());
+
+    toRemove.forEach(param => {
+      if (url.searchParams.has(param)) {
+        stripped.push({ key: param, val: url.searchParams.get(param) });
+        url.searchParams.delete(param);
+      }
+    });
+
+    const cleanHref = url.href;
+    document.getElementById('cleanUrl').textContent = cleanHref;
+
+    const strippedEl = document.getElementById('strippedParams');
+    if (stripped.length === 0) {
+      strippedEl.innerHTML = '<p class="none-msg">No tracking parameters found.</p>';
+    } else {
+      strippedEl.innerHTML = `
+        <div class="param-header">
+          <span>Parameter</span>
+          <span>Description</span>
+          <span>Value</span>
+        </div>` +
+        stripped.map(({ key, val }) => {
+          const desc = PARAM_DESCRIPTIONS[key] || '';
+          return `
+        <div class="param-row">
+          <span class="param-key">${key}</span>
+          <span class="param-desc">${desc}</span>
+          <span class="param-val">${val}</span>
+        </div>`;
+        }).join('');
+    }
+
+    document.getElementById('resultSection').classList.add('visible');
+    document.getElementById('copyBtn').textContent = 'Copy';
+    document.getElementById('copyBtn').classList.remove('copied');
+    // Reset stripped toggle to collapsed for each new clean
+    const sb = document.getElementById('strippedBody');
+    const sa = document.getElementById('strippedArrow');
+    sb.classList.remove('open');
+    sa.classList.remove('open');
+  }
+
+  function copyUrl() {
+    const text = document.getElementById('cleanUrl').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  function reset() {
+    document.getElementById('urlInput').value = '';
+    document.getElementById('resultSection').classList.remove('visible');
+    document.getElementById('strippedBody').classList.remove('open');
+    document.getElementById('strippedArrow').classList.remove('open');
+  }
+
+  renderParams();
+</script>
+
+</body>
+</html>

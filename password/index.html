@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0e10; --surface: #18181c; --border: #2a2a32;
+      --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee;
+      --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; color: var(--text); line-height: 1.2; margin-bottom: 2rem; }
+    h1 span { color: var(--muted); }
+    .pw-display { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; font-family: 'Space Mono', monospace; font-size: 1.05rem; color: var(--accent); letter-spacing: 0.04em; word-break: break-all; line-height: 1.6; margin-bottom: 0.75rem; min-height: 60px; }
+    .strength-bar { height: 4px; border-radius: 2px; background: var(--border); margin-bottom: 0.4rem; overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+    .strength-label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.25rem; }
+    .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+    button { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #0e0e10; }
+    .btn-primary:hover { background: #c9ff8a; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-ghost.copied { color: var(--good); border-color: var(--good); }
+    .divider { height: 1px; background: var(--border); margin: 0.5rem 0 1.5rem; }
+    .option-label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+    .length-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+    input[type="range"] { -webkit-appearance: none; flex: 1; height: 4px; border-radius: 2px; background: var(--border); outline: none; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+    .length-val { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--accent); min-width: 2.5rem; text-align: right; }
+    .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .check-label { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; font-size: 0.88rem; color: var(--text); user-select: none; }
+    .check-label input[type="checkbox"] { display: none; }
+    .check-box { width: 18px; height: 18px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-size: 0.7rem; }
+    .check-label input:checked + .check-box { background: var(--accent); border-color: var(--accent); color: #0e0e10; }
+    .batch-section { margin-top: 1.5rem; }
+    .batch-list { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .batch-item { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+    .batch-copy { background: none; border: none; color: var(--border); cursor: pointer; font-size: 0.7rem; font-family: 'Space Mono', monospace; padding: 0; transition: color 0.15s; }
+    .batch-copy:hover { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header>
+      <p class="eyebrow">Utility</p>
+      <h1>Password Generator <span>/ secure &amp; random</span></h1>
+    </header>
+
+    <div class="pw-display" id="pwDisplay">—</div>
+    <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+    <p class="strength-label" id="strengthLabel">—</p>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="generate()">Generate</button>
+      <button class="btn-ghost" id="copyBtn" onclick="copyPw()">Copy</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="option-label">Length: <span id="lengthDisplay">20</span></p>
+    <div class="length-row">
+      <input type="range" id="lengthSlider" min="8" max="64" value="20" oninput="onLengthChange()">
+    </div>
+
+    <p class="option-label">Characters</p>
+    <div class="checks">
+      <label class="check-label"><input type="checkbox" id="chkUpper" checked><span class="check-box">✓</span> Uppercase (A–Z)</label>
+      <label class="check-label"><input type="checkbox" id="chkLower" checked><span class="check-box">✓</span> Lowercase (a–z)</label>
+      <label class="check-label"><input type="checkbox" id="chkNumbers" checked><span class="check-box">✓</span> Numbers (0–9)</label>
+      <label class="check-label"><input type="checkbox" id="chkSymbols"><span class="check-box">✓</span> Symbols (!@#…)</label>
+    </div>
+
+    <div class="batch-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.1rem">
+        <p class="option-label" style="margin:0">Batch generate</p>
+        <button class="btn-ghost" style="padding:0.4rem 0.9rem;font-size:0.8rem" onclick="generateBatch()">Generate 5</button>
+      </div>
+      <div class="batch-list" id="batchList"></div>
+    </div>
+  </div>
+
+  <script>
+    const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const LOWER = 'abcdefghijklmnopqrstuvwxyz';
+    const NUMS  = '0123456789';
+    const SYMS  = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+
+    function buildCharset() {
+      let c = '';
+      if (document.getElementById('chkUpper').checked) c += UPPER;
+      if (document.getElementById('chkLower').checked) c += LOWER;
+      if (document.getElementById('chkNumbers').checked) c += NUMS;
+      if (document.getElementById('chkSymbols').checked) c += SYMS;
+      return c || LOWER + NUMS;
+    }
+
+    function randomPw(len, charset) {
+      const arr = new Uint32Array(len);
+      crypto.getRandomValues(arr);
+      return Array.from(arr).map(x => charset[x % charset.length]).join('');
+    }
+
+    function strength(pw) {
+      let score = 0;
+      if (pw.length >= 12) score++;
+      if (pw.length >= 20) score++;
+      if (/[A-Z]/.test(pw)) score++;
+      if (/[a-z]/.test(pw)) score++;
+      if (/[0-9]/.test(pw)) score++;
+      if (/[^A-Za-z0-9]/.test(pw)) score++;
+      if (score <= 2) return { label: 'Weak', pct: 25, color: 'var(--danger)' };
+      if (score <= 4) return { label: 'Fair', pct: 55, color: '#ffa657' };
+      if (score <= 5) return { label: 'Strong', pct: 80, color: 'var(--accent)' };
+      return { label: 'Very strong', pct: 100, color: 'var(--good)' };
+    }
+
+    function displayPw(pw) {
+      document.getElementById('pwDisplay').textContent = pw;
+      const s = strength(pw);
+      document.getElementById('strengthFill').style.cssText = `width:${s.pct}%;background:${s.color}`;
+      document.getElementById('strengthLabel').textContent = s.label;
+      document.getElementById('copyBtn').textContent = 'Copy';
+      document.getElementById('copyBtn').classList.remove('copied');
+    }
+
+    function generate() {
+      const len = +document.getElementById('lengthSlider').value;
+      const pw = randomPw(len, buildCharset());
+      displayPw(pw);
+    }
+
+    function onLengthChange() {
+      const v = document.getElementById('lengthSlider').value;
+      document.getElementById('lengthDisplay').textContent = v;
+      generate();
+    }
+
+    function copyPw() {
+      const pw = document.getElementById('pwDisplay').textContent;
+      if (pw === '—') return;
+      navigator.clipboard.writeText(pw).then(() => {
+        const btn = document.getElementById('copyBtn');
+        btn.textContent = 'Copied!'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    function generateBatch() {
+      const len = +document.getElementById('lengthSlider').value;
+      const charset = buildCharset();
+      const list = document.getElementById('batchList');
+      list.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const pw = randomPw(len, charset);
+        const div = document.createElement('div');
+        div.className = 'batch-item';
+        div.innerHTML = `<span>${pw}</span><button class="batch-copy" onclick="copyBatch(this,'${pw}')">copy</button>`;
+        list.appendChild(div);
+      }
+    }
+
+    function copyBatch(btn, pw) {
+      navigator.clipboard.writeText(pw).then(() => {
+        btn.textContent = 'copied!';
+        setTimeout(() => { btn.textContent = 'copy'; }, 2000);
+      });
+    }
+
+    // Add change listeners to checkboxes so password regenerates
+    ['chkUpper','chkLower','chkNumbers','chkSymbols'].forEach(id => {
+      document.getElementById(id).addEventListener('change', generate);
+    });
+
+    generate();
+  </script>
+</body>
+</html>

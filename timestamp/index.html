@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timestamp — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0e0e10; --surface: #18181c; --border: #2a2a32;
+      --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee;
+      --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; color: var(--text); line-height: 1.2; margin-bottom: 2rem; }
+    h1 span { color: var(--muted); }
+    .now-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    .now-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .now-val { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); letter-spacing: -0.02em; }
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+    .section-title { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+    .input-row { display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.5rem; }
+    input[type="text"], input[type="number"] { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.82rem; padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.2s; flex: 1; }
+    input:focus { border-color: var(--accent-dim); }
+    input::placeholder { color: var(--muted); }
+    button { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #0e0e10; }
+    .btn-primary:hover { background: #c9ff8a; }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
+    .result-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1rem; }
+    .result-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+    .result-val { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--good); word-break: break-all; }
+    .error { color: var(--danger); font-size: 0.78rem; font-family: 'Space Mono', monospace; min-height: 1.2em; margin-top: 0.3rem; }
+    .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.72rem; padding: 0.3rem 0.65rem; border-radius: 5px; cursor: pointer; font-family: 'Space Mono', monospace; transition: all 0.15s; margin-top: 0.4rem; }
+    .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+    .copy-btn.copied { color: var(--good); border-color: var(--good); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header>
+      <p class="eyebrow">Utility</p>
+      <h1>Timestamp <span>/ unix ↔ human</span></h1>
+    </header>
+
+    <div class="now-box">
+      <div>
+        <p class="now-label">Current Unix timestamp</p>
+        <p class="now-val" id="nowTs"></p>
+      </div>
+      <button class="btn-primary" onclick="useNow()" style="white-space:nowrap">Use now</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <p class="section-title">Unix timestamp → human date</p>
+    <div class="input-row">
+      <input type="number" id="tsInput" placeholder="e.g. 1717689600">
+      <button class="btn-primary" onclick="tsToHuman()">Convert</button>
+    </div>
+    <p class="error" id="tsError"></p>
+    <div class="result-grid" id="tsResults" style="display:none"></div>
+
+    <div class="divider"></div>
+
+    <p class="section-title">Human date → Unix timestamp</p>
+    <div class="input-row">
+      <input type="text" id="dateInput" placeholder="e.g. 2024-06-06 or 2024-06-06T12:00:00">
+      <button class="btn-primary" onclick="humanToTs()">Convert</button>
+    </div>
+    <p class="error" id="dateError"></p>
+    <div class="result-grid" id="dateResults" style="display:none"></div>
+  </div>
+
+  <script>
+    function pad(n) { return String(n).padStart(2,'0'); }
+
+    function tick() {
+      document.getElementById('nowTs').textContent = Math.floor(Date.now()/1000);
+    }
+    tick(); setInterval(tick, 1000);
+
+    function useNow() {
+      document.getElementById('tsInput').value = Math.floor(Date.now()/1000);
+      tsToHuman();
+    }
+
+    function copyVal(btn, val) {
+      navigator.clipboard.writeText(val).then(() => {
+        btn.textContent = 'Copied!'; btn.classList.add('copied');
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+      });
+    }
+
+    function renderResults(containerId, rows) {
+      const el = document.getElementById(containerId);
+      el.style.display = 'grid';
+      el.innerHTML = rows.map(({label, val}) => `
+        <div class="result-cell">
+          <p class="result-label">${label}</p>
+          <p class="result-val">${val}</p>
+          <button class="copy-btn" onclick="copyVal(this, '${val.replace(/'/g,"\\'")}')">Copy</button>
+        </div>`).join('');
+    }
+
+    function tsToHuman() {
+      const raw = document.getElementById('tsInput').value.trim();
+      document.getElementById('tsError').textContent = '';
+      document.getElementById('tsResults').style.display = 'none';
+      if (!raw) return;
+      let ms = +raw;
+      // Handle milliseconds vs seconds
+      if (raw.length >= 13) { /* already ms */ } else { ms = ms * 1000; }
+      const d = new Date(ms);
+      if (isNaN(d)) { document.getElementById('tsError').textContent = 'Invalid timestamp'; return; }
+      const utc = d.toUTCString();
+      const iso = d.toISOString();
+      const local = d.toLocaleString();
+      const date = `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+      const time = `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+      renderResults('tsResults', [
+        { label: 'ISO 8601', val: iso },
+        { label: 'UTC', val: utc },
+        { label: 'Local', val: local },
+        { label: 'Date (UTC)', val: date },
+        { label: 'Time (UTC)', val: time },
+      ]);
+    }
+
+    function humanToTs() {
+      const raw = document.getElementById('dateInput').value.trim();
+      document.getElementById('dateError').textContent = '';
+      document.getElementById('dateResults').style.display = 'none';
+      if (!raw) return;
+      const d = new Date(raw);
+      if (isNaN(d)) { document.getElementById('dateError').textContent = 'Could not parse date'; return; }
+      const secs = Math.floor(d.getTime()/1000);
+      const ms = d.getTime();
+      renderResults('dateResults', [
+        { label: 'Unix (seconds)', val: String(secs) },
+        { label: 'Unix (milliseconds)', val: String(ms) },
+        { label: 'ISO 8601', val: d.toISOString() },
+        { label: 'UTC string', val: d.toUTCString() },
+      ]);
+    }
+  </script>
+</body>
+</html>
