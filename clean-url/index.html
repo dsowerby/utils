@@ -351,7 +351,9 @@
   </div>
 
   <div class="btn-row">
-    <button class="btn-primary" onclick="clean()">Clean URL</button>
+    <button class="btn-primary" onclick="clean()">Clean tracked</button>
+    <button class="btn-ghost" onclick="cleanAll()">Remove all params</button>
+    <button class="btn-ghost" onclick="cleanKeepFunctional()">Keep functional only</button>
     <button class="btn-ghost" onclick="reset()">Clear</button>
   </div>
 
@@ -447,6 +449,15 @@
     // Misc
     ref:                'Referral source',
     source:             'Traffic source',
+
+    // Smartly.io / Mediaocean
+    sl_source_ad_platform: 'Smartly.io ad platform',
+    sl_source_campaign_id: 'Smartly.io campaign ID',
+    sl_source_placement:   'Smartly.io ad placement',
+    sl_source_ad_id:       'Smartly.io ad ID',
+
+    // Generic ad creative
+    media_type:            'Ad creative media type',
   };
 
   const DEFAULT_PARAMS = Object.keys(PARAM_DESCRIPTIONS);
@@ -493,30 +504,11 @@
     last.onchange = (e) => { DEFAULT_PARAMS[DEFAULT_PARAMS.length - 1] = e.target.value; };
   }
 
-  function clean() {
-    const raw = document.getElementById('urlInput').value.trim();
-    if (!raw) return;
-
-    let url;
-    try { url = new URL(raw); }
-    catch { alert('That doesn\'t look like a valid URL.'); return; }
-
-    const stripped = [];
-    const toRemove = DEFAULT_PARAMS.filter(Boolean).map(p => p.trim());
-
-    toRemove.forEach(param => {
-      if (url.searchParams.has(param)) {
-        stripped.push({ key: param, val: url.searchParams.get(param) });
-        url.searchParams.delete(param);
-      }
-    });
-
-    const cleanHref = url.href;
+  function showResult(cleanHref, stripped) {
     document.getElementById('cleanUrl').textContent = cleanHref;
-
     const strippedEl = document.getElementById('strippedParams');
     if (stripped.length === 0) {
-      strippedEl.innerHTML = '<p class="none-msg">No tracking parameters found.</p>';
+      strippedEl.innerHTML = '<p class="none-msg">No parameters removed.</p>';
     } else {
       strippedEl.innerHTML = `
         <div class="param-header">
@@ -534,15 +526,66 @@
         </div>`;
         }).join('');
     }
-
     document.getElementById('resultSection').classList.add('visible');
     document.getElementById('copyBtn').textContent = 'Copy';
     document.getElementById('copyBtn').classList.remove('copied');
-    // Reset stripped toggle to collapsed for each new clean
     const sb = document.getElementById('strippedBody');
     const sa = document.getElementById('strippedArrow');
     sb.classList.remove('open');
     sa.classList.remove('open');
+  }
+
+  function clean() {
+    const raw = document.getElementById('urlInput').value.trim();
+    if (!raw) return;
+    let url;
+    try { url = new URL(raw); }
+    catch { alert('That doesn\'t look like a valid URL.'); return; }
+    const stripped = [];
+    const toRemove = DEFAULT_PARAMS.filter(Boolean).map(p => p.trim());
+    toRemove.forEach(param => {
+      if (url.searchParams.has(param)) {
+        stripped.push({ key: param, val: url.searchParams.get(param) });
+        url.searchParams.delete(param);
+      }
+    });
+    showResult(url.href, stripped);
+  }
+
+  // Params that serve a functional (non-tracking) purpose on most sites
+  const FUNCTIONAL_PARAMS = new Set([
+    'id', 'sku', 'variant', 'product', 'page', 'p', 'q', 'query', 's', 'search',
+    'sort', 'order', 'filter', 'category', 'cat', 'tag', 'color', 'colour', 'size',
+    'lang', 'language', 'locale', 'currency', 'tab', 'view', 'type', 'format',
+    'limit', 'offset', 'per_page', 'v', 'version',
+  ]);
+
+  function cleanAll() {
+    const raw = document.getElementById('urlInput').value.trim();
+    if (!raw) return;
+    let url;
+    try { url = new URL(raw); } catch { alert('That doesn\'t look like a valid URL.'); return; }
+    const stripped = [];
+    for (const [key, val] of [...url.searchParams.entries()]) {
+      stripped.push({ key, val });
+    }
+    url.search = '';
+    showResult(url.href, stripped);
+  }
+
+  function cleanKeepFunctional() {
+    const raw = document.getElementById('urlInput').value.trim();
+    if (!raw) return;
+    let url;
+    try { url = new URL(raw); } catch { alert('That doesn\'t look like a valid URL.'); return; }
+    const stripped = [];
+    for (const [key, val] of [...url.searchParams.entries()]) {
+      if (!FUNCTIONAL_PARAMS.has(key.toLowerCase())) {
+        stripped.push({ key, val });
+        url.searchParams.delete(key);
+      }
+    }
+    showResult(url.href, stripped);
   }
 
   function copyUrl() {
