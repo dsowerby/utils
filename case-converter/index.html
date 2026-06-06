@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Converter — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    textarea { width: 100%; min-height: 100px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.95rem; padding: 1rem; resize: vertical; outline: none; transition: border-color 0.2s; line-height: 1.6; margin-bottom: 1.5rem; }
+    textarea:focus { border-color: var(--accent-dim); } textarea::placeholder { color: var(--muted); }
+    .divider { height: 1px; background: var(--border); margin: 0 0 1.5rem; }
+    .results { display: flex; flex-direction: column; gap: 0.6rem; }
+    .result-row { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 1rem; }
+    .result-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); min-width: 110px; flex-shrink: 0; }
+    .result-val { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--text); flex: 1; word-break: break-all; }
+    .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; padding: 0.3rem 0.65rem; border-radius: 5px; cursor: pointer; font-family: 'Space Mono', monospace; transition: all 0.15s; flex-shrink: 0; }
+    .copy-btn:hover { color: var(--text); border-color: var(--muted); }
+    .copy-btn.copied { color: var(--good); border-color: var(--good); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Case Converter <span>/ all formats</span></h1></header>
+    <p class="label">Input</p>
+    <textarea id="input" placeholder="Type or paste text here…" oninput="convert()"></textarea>
+    <div class="divider"></div>
+    <div class="results" id="results"></div>
+  </div>
+  <script>
+    const CASES = [
+      { label: 'UPPER CASE', fn: s => s.toUpperCase() },
+      { label: 'lower case', fn: s => s.toLowerCase() },
+      { label: 'Title Case', fn: s => s.toLowerCase().replace(/(?:^|\s)\S/g, c => c.toUpperCase()) },
+      { label: 'Sentence case', fn: s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() },
+      { label: 'camelCase', fn: s => words(s).map((w,i) => i===0 ? w.toLowerCase() : cap(w)).join('') },
+      { label: 'PascalCase', fn: s => words(s).map(cap).join('') },
+      { label: 'snake_case', fn: s => words(s).join('_').toLowerCase() },
+      { label: 'SCREAMING_SNAKE', fn: s => words(s).join('_').toUpperCase() },
+      { label: 'kebab-case', fn: s => words(s).join('-').toLowerCase() },
+      { label: 'TRAIN-CASE', fn: s => words(s).join('-').toUpperCase() },
+      { label: 'dot.case', fn: s => words(s).join('.').toLowerCase() },
+    ];
+    function words(s) { return s.trim().replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_\-\.]+/g,' ').split(/\s+/).filter(Boolean); }
+    function cap(w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }
+    function convert() {
+      const s = document.getElementById('input').value;
+      const container = document.getElementById('results');
+      container.innerHTML = CASES.map((c,i) => `
+        <div class="result-row">
+          <span class="result-label">${c.label}</span>
+          <span class="result-val" id="cv${i}">${escHtml(c.fn(s))}</span>
+          <button class="copy-btn" onclick="cp(${i},this)">Copy</button>
+        </div>`).join('');
+    }
+    function cp(i, btn) {
+      navigator.clipboard.writeText(document.getElementById('cv'+i).textContent).then(()=>{
+        btn.textContent='Copied!'; btn.classList.add('copied');
+        setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);
+      });
+    }
+    function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    convert();
+  </script>
+</body>
+</html>

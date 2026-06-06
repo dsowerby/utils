@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aspect Ratio — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .input-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: end; margin-bottom: 1.25rem; }
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    input[type="number"] { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 1rem; padding: 0.75rem 0.9rem; outline: none; transition: border-color 0.2s; width: 100%; }
+    input[type="number"]:focus { border-color: var(--accent-dim); }
+    .sep { font-family: 'Space Mono', monospace; font-size: 1.2rem; color: var(--muted); padding-bottom: 0.75rem; text-align: center; }
+    .presets { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .preset { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.65rem; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+    .preset:hover { color: var(--text); border-color: var(--muted); }
+    .divider { height: 1px; background: var(--border); margin: 0 0 1.5rem; }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .result-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
+    .result-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+    .result-val { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--accent); }
+    .preview-wrap { display: flex; justify-content: center; }
+    .preview-rect { border: 2px solid var(--accent-dim); border-radius: 4px; background: rgba(180,255,110,0.05); transition: all 0.3s; }
+    .solve-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.75rem; align-items: end; margin-bottom: 0.5rem; }
+    .solve-label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Aspect Ratio <span>/ resize &amp; solve</span></h1></header>
+    <p class="label" style="margin-bottom:0.5rem">Ratio</p>
+    <div class="input-grid">
+      <div class="field"><input type="number" id="ratioW" value="16" min="1" oninput="update()"></div>
+      <div class="sep">:</div>
+      <div class="field"><input type="number" id="ratioH" value="9" min="1" oninput="update()"></div>
+    </div>
+    <div class="presets">
+      <button class="preset" onclick="setRatio(16,9)">16:9</button>
+      <button class="preset" onclick="setRatio(4,3)">4:3</button>
+      <button class="preset" onclick="setRatio(1,1)">1:1</button>
+      <button class="preset" onclick="setRatio(3,2)">3:2</button>
+      <button class="preset" onclick="setRatio(21,9)">21:9</button>
+      <button class="preset" onclick="setRatio(9,16)">9:16</button>
+      <button class="preset" onclick="setRatio(2,3)">2:3</button>
+    </div>
+    <div class="divider"></div>
+    <p class="label" style="margin-bottom:0.75rem">Solve for missing dimension</p>
+    <div class="solve-row">
+      <div class="field"><p class="solve-label">Width</p><input type="number" id="solveW" placeholder="e.g. 1920" oninput="solveFromW()"></div>
+      <div class="sep">×</div>
+      <div class="field"><p class="solve-label">Height</p><input type="number" id="solveH" placeholder="e.g. 1080" oninput="solveFromH()"></div>
+    </div>
+    <div class="divider" style="margin-top:1.25rem"></div>
+    <div class="result-grid">
+      <div class="result-cell"><p class="result-label">Simplified ratio</p><p class="result-val" id="simplified">16:9</p></div>
+      <div class="result-cell"><p class="result-label">Decimal</p><p class="result-val" id="decimal">1.778</p></div>
+    </div>
+    <div class="preview-wrap"><div class="preview-rect" id="previewRect" style="width:160px;height:90px"></div></div>
+  </div>
+  <script>
+    function gcd(a,b){return b?gcd(b,a%b):a;}
+    function setRatio(w,h){document.getElementById('ratioW').value=w;document.getElementById('ratioH').value=h;update();}
+    function update(){
+      const w=+document.getElementById('ratioW').value||16, h=+document.getElementById('ratioH').value||9;
+      const g=gcd(w,h);
+      document.getElementById('simplified').textContent=`${w/g}:${h/g}`;
+      document.getElementById('decimal').textContent=(w/h).toFixed(4);
+      const maxW=200, maxH=140;
+      let pw=maxW, ph=Math.round(maxW*h/w);
+      if(ph>maxH){ph=maxH;pw=Math.round(maxH*w/h);}
+      document.getElementById('previewRect').style.width=pw+'px';
+      document.getElementById('previewRect').style.height=ph+'px';
+    }
+    function solveFromW(){
+      const w=+document.getElementById('solveW').value; if(!w) return;
+      const rw=+document.getElementById('ratioW').value||16, rh=+document.getElementById('ratioH').value||9;
+      document.getElementById('solveH').value=Math.round(w*rh/rw);
+    }
+    function solveFromH(){
+      const h=+document.getElementById('solveH').value; if(!h) return;
+      const rw=+document.getElementById('ratioW').value||16, rh=+document.getElementById('ratioH').value||9;
+      document.getElementById('solveW').value=Math.round(h*rw/rh);
+    }
+    update();
+  </script>
+</body>
+</html>

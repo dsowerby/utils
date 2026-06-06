@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lorem Ipsum — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+    .field { display: flex; flex-direction: column; gap: 0.35rem; }
+    input[type="number"] { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.9rem; padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.2s; width: 100%; }
+    input[type="number"]:focus { border-color: var(--accent-dim); }
+    select { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.85rem; padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.2s; width: 100%; cursor: pointer; }
+    select:focus { border-color: var(--accent-dim); }
+    .checks { display: flex; gap: 1.5rem; margin-bottom: 1.25rem; }
+    .check-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.88rem; }
+    .check-label input { display: none; }
+    .check-box { width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; transition: all 0.15s; }
+    .check-label input:checked + .check-box { background: var(--accent); border-color: var(--accent); color: #0e0e10; }
+    .btn-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+    button { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #0e0e10; } .btn-primary:hover { background: #c9ff8a; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); } .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-ghost.copied { color: var(--good); border-color: var(--good); }
+    .divider { height: 1px; background: var(--border); margin: 0 0 1.5rem; }
+    .output { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; font-size: 0.9rem; line-height: 1.8; color: var(--muted); min-height: 100px; }
+    .output p + p { margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Lorem Ipsum <span>/ placeholder text</span></h1></header>
+    <div class="controls">
+      <div class="field"><p class="label">Count</p><input type="number" id="count" value="3" min="1" max="100"></div>
+      <div class="field"><p class="label">Type</p>
+        <select id="type">
+          <option value="paragraphs">Paragraphs</option>
+          <option value="sentences">Sentences</option>
+          <option value="words">Words</option>
+        </select>
+      </div>
+    </div>
+    <div class="checks">
+      <label class="check-label"><input type="checkbox" id="startLorem" checked><span class="check-box">✓</span> Start with "Lorem ipsum"</label>
+      <label class="check-label"><input type="checkbox" id="htmlMode"><span class="check-box">✓</span> Wrap in &lt;p&gt; tags</label>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="generate()">Generate</button>
+      <button class="btn-ghost" id="copyBtn" onclick="copyOut()">Copy</button>
+    </div>
+    <div class="divider"></div>
+    <div class="output" id="output"></div>
+  </div>
+  <script>
+    const WORDS = 'lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure dolor reprehenderit voluptate velit esse cillum dolore fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' ');
+    function rnd(n){return Math.floor(Math.random()*n);}
+    function sentence(){const len=8+rnd(10);const ws=[];for(let i=0;i<len;i++)ws.push(WORDS[rnd(WORDS.length)]);return ws[0].charAt(0).toUpperCase()+ws.slice(1).join(' ')+'.';}
+    function paragraph(){const sents=3+rnd(4);return Array.from({length:sents},sentence).join(' ');}
+    let lastText='';
+    function generate(){
+      const n=Math.max(1,+document.getElementById('count').value);
+      const type=document.getElementById('type').value;
+      const html=document.getElementById('htmlMode').checked;
+      const lorem=document.getElementById('startLorem').checked;
+      let parts=[];
+      if(type==='paragraphs'){parts=Array.from({length:n},paragraph);}
+      else if(type==='sentences'){parts=Array.from({length:n},sentence);}
+      else{const ws=[];while(ws.length<n)ws.push(WORDS[rnd(WORDS.length)]);parts=[ws.join(' ')];}
+      if(lorem&&parts.length>0){parts[0]='Lorem ipsum dolor sit amet '+parts[0].charAt(0).toLowerCase()+parts[0].slice(1);}
+      if(html){lastText=parts.map(p=>`<p>${p}</p>`).join('\n');document.getElementById('output').innerHTML=parts.map(p=>`<p>${p}</p>`).join('');}
+      else{lastText=parts.join('\n\n');document.getElementById('output').innerHTML=parts.map(p=>`<p>${p}</p>`).join('');}
+    }
+    function copyOut(){
+      if(!lastText)return;
+      navigator.clipboard.writeText(lastText).then(()=>{const b=document.getElementById('copyBtn');b.textContent='Copied!';b.classList.add('copied');setTimeout(()=>{b.textContent='Copy';b.classList.remove('copied');},2000);});
+    }
+    generate();
+  </script>
+</body>
+</html>

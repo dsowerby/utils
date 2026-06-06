@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>URL Encoder/Decoder — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    textarea { width: 100%; min-height: 110px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.78rem; padding: 1rem; resize: vertical; outline: none; transition: border-color 0.2s; line-height: 1.6; margin-bottom: 0.75rem; }
+    textarea:focus { border-color: var(--accent-dim); } textarea::placeholder { color: var(--muted); }
+    .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+    button { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #0e0e10; } .btn-primary:hover { background: #c9ff8a; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); } .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-ghost.copied { color: var(--good); border-color: var(--good); }
+    .divider { height: 1px; background: var(--border); margin: 0 0 1.75rem; }
+    .error { color: var(--danger); font-size: 0.78rem; font-family: 'Space Mono', monospace; min-height: 1.2em; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>URL Encoder / Decoder <span>/ %20 and friends</span></h1></header>
+    <p class="label">Input</p>
+    <textarea id="input" placeholder="Paste text or an encoded URL…"></textarea>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="encode()">Encode →</button>
+      <button class="btn-primary" onclick="decode()">← Decode</button>
+      <button class="btn-ghost" onclick="swap()">Swap</button>
+      <button class="btn-ghost" onclick="clearAll()">Clear</button>
+    </div>
+    <div class="divider"></div>
+    <p class="label">Output</p>
+    <textarea id="output" placeholder="Result will appear here…" readonly></textarea>
+    <p class="error" id="err"></p>
+    <button class="btn-ghost" id="copyBtn" onclick="copyOut()">Copy</button>
+  </div>
+  <script>
+    function encode() { document.getElementById('err').textContent=''; document.getElementById('output').value = encodeURIComponent(document.getElementById('input').value); }
+    function decode() {
+      document.getElementById('err').textContent='';
+      try { document.getElementById('output').value = decodeURIComponent(document.getElementById('input').value); }
+      catch(e) { document.getElementById('err').textContent = 'Invalid encoded string.'; }
+    }
+    function swap() { const a=document.getElementById('input').value,b=document.getElementById('output').value; document.getElementById('input').value=b; document.getElementById('output').value=a; document.getElementById('err').textContent=''; }
+    function clearAll() { document.getElementById('input').value=''; document.getElementById('output').value=''; document.getElementById('err').textContent=''; }
+    function copyOut() {
+      const t=document.getElementById('output').value; if(!t) return;
+      navigator.clipboard.writeText(t).then(()=>{ const b=document.getElementById('copyBtn'); b.textContent='Copied!'; b.classList.add('copied'); setTimeout(()=>{b.textContent='Copy';b.classList.remove('copied');},2000); });
+    }
+  </script>
+</body>
+</html>

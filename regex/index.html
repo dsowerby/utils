@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regex Tester — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 760px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .pattern-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+    .pattern-wrap { display: flex; flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+    .pattern-wrap:focus-within { border-color: var(--accent-dim); }
+    .pattern-slash { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--muted); padding: 0.65rem 0.5rem 0.65rem 0.85rem; }
+    .pattern-wrap input { flex: 1; background: transparent; border: none; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.85rem; padding: 0.65rem 0; outline: none; }
+    .flags-input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-family: 'Space Mono', monospace; font-size: 0.85rem; padding: 0.65rem 0.75rem; outline: none; width: 70px; transition: border-color 0.2s; }
+    .flags-input:focus { border-color: var(--accent-dim); }
+    .status { font-family: 'Space Mono', monospace; font-size: 0.72rem; margin-bottom: 1rem; min-height: 1.2em; }
+    .status.ok { color: var(--good); } .status.err { color: var(--danger); } .status.info { color: var(--accent); }
+    textarea { width: 100%; min-height: 140px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.82rem; padding: 1rem; resize: vertical; outline: none; transition: border-color 0.2s; line-height: 1.8; }
+    textarea:focus { border-color: var(--accent-dim); } textarea::placeholder { color: var(--muted); }
+    .highlighted { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; font-family: 'Space Mono', monospace; font-size: 0.82rem; line-height: 1.8; white-space: pre-wrap; word-break: break-all; min-height: 80px; margin-top: 1rem; }
+    mark { background: rgba(180,255,110,0.3); color: var(--accent); border-radius: 2px; }
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+    .match-list { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .match-item { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.45rem 0.85rem; font-family: 'Space Mono', monospace; font-size: 0.75rem; color: var(--accent); display: flex; gap: 1rem; }
+    .match-idx { color: var(--muted); min-width: 60px; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Regex Tester <span>/ live match highlighting</span></h1></header>
+    <p class="label">Pattern</p>
+    <div class="pattern-row">
+      <div class="pattern-wrap">
+        <span class="pattern-slash">/</span>
+        <input type="text" id="pattern" placeholder="[a-z]+" oninput="run()">
+        <span class="pattern-slash">/</span>
+      </div>
+      <input type="text" class="flags-input" id="flags" value="gi" placeholder="gi" oninput="run()" maxlength="6" title="Flags: g i m s u">
+    </div>
+    <p class="status" id="status"></p>
+    <p class="label">Test string</p>
+    <textarea id="testStr" placeholder="Type or paste text to test against…" oninput="run()"></textarea>
+    <div class="highlighted" id="highlighted"></div>
+    <div class="divider"></div>
+    <p class="label">Matches (<span id="matchCount">0</span>)</p>
+    <div class="match-list" id="matchList"></div>
+  </div>
+  <script>
+    function run() {
+      const pat = document.getElementById('pattern').value;
+      const flags = document.getElementById('flags').value;
+      const text = document.getElementById('testStr').value;
+      const status = document.getElementById('status');
+      const highlighted = document.getElementById('highlighted');
+      const matchList = document.getElementById('matchList');
+      document.getElementById('matchCount').textContent = '0';
+      matchList.innerHTML = '';
+      highlighted.textContent = '';
+      if (!pat) { status.textContent = ''; highlighted.textContent = text; return; }
+      let re;
+      try { re = new RegExp(pat, flags.includes('g') ? flags : flags + 'g'); status.className='status ok'; status.textContent = '✓ Valid pattern'; }
+      catch(e) { status.className='status err'; status.textContent = '✗ ' + e.message; highlighted.textContent = text; return; }
+      const matches = [...text.matchAll(re)];
+      document.getElementById('matchCount').textContent = matches.length;
+      if (matches.length === 0) { status.className='status info'; status.textContent = '0 matches'; highlighted.textContent = text; return; }
+      status.className='status ok'; status.textContent = `✓ ${matches.length} match${matches.length===1?'':'es'}`;
+      let html = '', last = 0;
+      matches.forEach((m, i) => {
+        html += escHtml(text.slice(last, m.index));
+        html += `<mark>${escHtml(m[0])}</mark>`;
+        last = m.index + m[0].length;
+        matchList.innerHTML += `<div class="match-item"><span class="match-idx">#${i+1} @${m.index}</span><span>${escHtml(m[0])}</span></div>`;
+      });
+      html += escHtml(text.slice(last));
+      highlighted.innerHTML = html;
+    }
+    function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  </script>
+</body>
+</html>

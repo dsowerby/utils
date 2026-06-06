@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diff Checker — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --add: rgba(110,255,180,0.15); --add-text: #6effb4; --del: rgba(255,107,107,0.15); --del-text: #ff6b6b; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 900px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    textarea { width: 100%; min-height: 200px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.78rem; padding: 1rem; resize: vertical; outline: none; transition: border-color 0.2s; line-height: 1.6; }
+    textarea:focus { border-color: var(--accent-dim); } textarea::placeholder { color: var(--muted); }
+    .btn-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+    button { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #0e0e10; } .btn-primary:hover { background: #c9ff8a; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); } .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .divider { height: 1px; background: var(--border); margin: 0 0 1.5rem; }
+    .diff-output { font-family: 'Space Mono', monospace; font-size: 0.78rem; line-height: 1.7; }
+    .line { padding: 0.1rem 0.75rem; white-space: pre-wrap; word-break: break-all; }
+    .line.add { background: var(--add); color: var(--add-text); }
+    .line.del { background: var(--del); color: var(--del-text); }
+    .line.eq { color: var(--muted); }
+    .legend { display: flex; gap: 1.5rem; margin-bottom: 0.75rem; }
+    .leg { font-family: 'Space Mono', monospace; font-size: 0.65rem; display: flex; align-items: center; gap: 0.4rem; }
+    .leg-dot { width: 8px; height: 8px; border-radius: 2px; }
+    .leg-add { background: var(--add-text); } .leg-del { background: var(--del-text); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Diff Checker <span>/ line by line</span></h1></header>
+    <div class="panes">
+      <div><p class="label">Original</p><textarea id="left" placeholder="Paste original text…"></textarea></div>
+      <div><p class="label">Changed</p><textarea id="right" placeholder="Paste changed text…"></textarea></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="diff()">Compare</button>
+      <button class="btn-ghost" onclick="clearAll()">Clear</button>
+    </div>
+    <div id="resultArea" style="display:none">
+      <div class="divider"></div>
+      <div class="legend">
+        <div class="leg"><div class="leg-dot leg-add"></div><span style="color:var(--add-text)">Added</span></div>
+        <div class="leg"><div class="leg-dot leg-del"></div><span style="color:var(--del-text)">Removed</span></div>
+        <div class="leg"><div class="leg-dot" style="background:var(--muted)"></div><span style="color:var(--muted)">Unchanged</span></div>
+      </div>
+      <div class="diff-output" id="diffOutput"></div>
+    </div>
+  </div>
+  <script>
+    function lcs(a,b) {
+      const m=a.length,n=b.length,dp=Array.from({length:m+1},()=>new Array(n+1).fill(0));
+      for(let i=1;i<=m;i++) for(let j=1;j<=n;j++) dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+      const res=[];let i=m,j=n;
+      while(i>0&&j>0){ if(a[i-1]===b[j-1]){res.push({type:'eq',val:a[i-1]});i--;j--;} else if(dp[i-1][j]>dp[i][j-1]){res.push({type:'del',val:a[i-1]});i--;} else{res.push({type:'add',val:b[j-1]});j--;} }
+      while(i>0){res.push({type:'del',val:a[i-1]});i--;} while(j>0){res.push({type:'add',val:b[j-1]});j--;}
+      return res.reverse();
+    }
+    function diff() {
+      const a=document.getElementById('left').value.split('\n');
+      const b=document.getElementById('right').value.split('\n');
+      const ops=lcs(a,b);
+      document.getElementById('diffOutput').innerHTML=ops.map(op=>{
+        const cls=op.type; const prefix=cls==='add'?'+ ':cls==='del'?'- ':'  ';
+        return `<div class="line ${cls}">${prefix}${escHtml(op.val)}</div>`;
+      }).join('');
+      document.getElementById('resultArea').style.display='block';
+    }
+    function clearAll(){document.getElementById('left').value='';document.getElementById('right').value='';document.getElementById('resultArea').style.display='none';}
+    function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  </script>
+</body>
+</html>

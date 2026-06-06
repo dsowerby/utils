@@ -7,89 +7,74 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0e0e10; --surface: #18181c; --border: #2a2a32;
-      --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee;
-      --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4;
-    }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; }
     body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding: 4rem 1.5rem 6rem; }
-    .site-header { max-width: 760px; margin: 0 auto 3.5rem; }
+    .site-header { max-width: 900px; margin: 0 auto 3.5rem; }
     .site-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
     .site-title { font-family: 'Space Mono', monospace; font-size: 2.4rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.75rem; }
     .site-desc { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 480px; line-height: 1.6; }
-    .grid { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
-    .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.75rem; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s; position: relative; overflow: hidden; }
-    .tool-card:hover { border-color: var(--accent-dim); box-shadow: 0 0 32px rgba(180,255,110,0.07); transform: translateY(-2px); }
-    .tool-emoji { font-size: 1.8rem; line-height: 1; }
-    .tool-name { font-family: 'Space Mono', monospace; font-size: 0.85rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
-    .tool-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.5; flex: 1; }
-    .tool-tag { display: inline-block; font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 0.2rem 0.5rem; align-self: flex-start; }
-    .arrow { position: absolute; bottom: 1.25rem; right: 1.25rem; font-size: 0.85rem; color: var(--border); transition: color 0.2s, transform 0.2s; }
+    .section-label { max-width: 900px; margin: 0 auto 0.85rem; font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); padding-left: 0.1rem; }
+    .grid { max-width: 900px; margin: 0 auto 2.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.85rem; }
+    .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.35rem; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.65rem; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s; position: relative; }
+    .tool-card:hover { border-color: var(--accent-dim); box-shadow: 0 0 28px rgba(180,255,110,0.07); transform: translateY(-2px); }
+    .tool-emoji { font-size: 1.6rem; line-height: 1; }
+    .tool-name { font-family: 'Space Mono', monospace; font-size: 0.82rem; font-weight: 700; color: var(--text); }
+    .tool-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; flex: 1; }
+    .arrow { position: absolute; bottom: 1.1rem; right: 1.1rem; font-size: 0.8rem; color: var(--border); transition: color 0.2s, transform 0.2s; }
     .tool-card:hover .arrow { color: var(--accent); transform: translate(2px,-2px); }
-    .site-footer { max-width: 760px; margin: 4rem auto 0; font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--border); text-transform: uppercase; }
+    .site-footer { max-width: 900px; margin: 2rem auto 0; font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--border); text-transform: uppercase; }
   </style>
 </head>
 <body>
   <header class="site-header">
-    <p class="site-eyebrow">github.com/your-username/utils</p>
+    <p class="site-eyebrow">dsowerby.github.io/utils</p>
     <h1 class="site-title">utils</h1>
     <p class="site-desc">Small, focused tools for the web. No accounts, no tracking, no fluff.</p>
   </header>
 
+  <p class="section-label">Web &amp; Privacy</p>
   <div class="grid">
-    <a href="clean-url/" class="tool-card">
-      <span class="tool-emoji">🧹</span>
-      <span class="tool-name">URL Cleaner</span>
-      <span class="tool-desc">Strip tracking parameters from URLs — UTM tags, click IDs, affiliate trackers and more.</span>
-      <span class="tool-tag">Ready</span>
-      <span class="arrow">↗</span>
-    </a>
-    <a href="user-agent/" class="tool-card">
-      <span class="tool-emoji">🕵️</span>
-      <span class="tool-name">User Agent Parser</span>
-      <span class="tool-desc">See what your browser reveals about itself — OS, engine, device type and more.</span>
-      <span class="tool-tag">Ready</span>
-      <span class="arrow">↗</span>
-    </a>
-    <a href="base64/" class="tool-card">
-      <span class="tool-emoji">🔢</span>
-      <span class="tool-name">Base64</span>
-      <span class="tool-desc">Encode and decode Base64 strings in your browser, with no data sent anywhere.</span>
-      <span class="tool-tag">Ready</span>
-      <span class="arrow">↗</span>
-    </a>
-    <a href="colour/" class="tool-card">
-      <span class="tool-emoji">🎨</span>
-      <span class="tool-name">Colour Converter</span>
-      <span class="tool-desc">Convert between hex, RGB and HSL. Pick a colour or paste a value.</span>
-      <span class="tool-tag">Ready</span>
-      <span class="arrow">↗</span>
-    </a>
-    <a href="timestamp/" class="tool-card">
-      <span class="tool-emoji">🕐</span>
-      <span class="tool-name">Timestamp</span>
-      <span class="tool-desc">Convert Unix timestamps to human-readable dates and back again.</span>
-      <span class="tool-tag">Ready</span>
-      <span class="arrow">↗</span>
-    </a>
-    <a href="json/" class="tool-card">
-      <span class="tool-emoji">📋</span>
-      <span class="tool-name">JSON Formatter</span>
-      <span class="tool-desc">Paste raw JSON and get it back prettified, minified, or validated — with syntax highlighting.</span>
-      <span class="tool-tag">Ready</span>
-      <span class="arrow">↗</span>
-    </a>
-    <a href="password/" class="tool-card">
-      <span class="tool-emoji">🔐</span>
-      <span class="tool-name">Password Generator</span>
-      <span class="tool-desc">Generate secure random passwords with custom length and character sets.</span>
-      <span class="tool-tag">Ready</span>
-      <span class="arrow">↗</span>
-    </a>
+    <a href="clean-url/" class="tool-card"><span class="tool-emoji">🧹</span><span class="tool-name">URL Cleaner</span><span class="tool-desc">Strip UTM tags, click IDs and tracking parameters from URLs.</span><span class="arrow">↗</span></a>
+    <a href="url-encode/" class="tool-card"><span class="tool-emoji">🔗</span><span class="tool-name">URL Encoder</span><span class="tool-desc">Encode and decode URL components — %20 and friends.</span><span class="arrow">↗</span></a>
+    <a href="user-agent/" class="tool-card"><span class="tool-emoji">🕵️</span><span class="tool-name">User Agent</span><span class="tool-desc">See what your browser reveals — OS, engine, device, memory.</span><span class="arrow">↗</span></a>
+    <a href="qr-code/" class="tool-card"><span class="tool-emoji">◼</span><span class="tool-name">QR Code</span><span class="tool-desc">Generate a scannable QR code from any URL or text.</span><span class="arrow">↗</span></a>
   </div>
 
-  <footer class="site-footer">
-    No tracking &nbsp;·&nbsp; No ads &nbsp;·&nbsp; No nonsense
-  </footer>
+  <p class="section-label">Developer Tools</p>
+  <div class="grid">
+    <a href="base64/" class="tool-card"><span class="tool-emoji">🔢</span><span class="tool-name">Base64</span><span class="tool-desc">Encode and decode Base64 strings in your browser.</span><span class="arrow">↗</span></a>
+    <a href="json/" class="tool-card"><span class="tool-emoji">📋</span><span class="tool-name">JSON Formatter</span><span class="tool-desc">Prettify, minify, or validate JSON with syntax highlighting.</span><span class="arrow">↗</span></a>
+    <a href="jwt/" class="tool-card"><span class="tool-emoji">🎫</span><span class="tool-name">JWT Decoder</span><span class="tool-desc">Decode a JSON Web Token and inspect header and payload.</span><span class="arrow">↗</span></a>
+    <a href="regex/" class="tool-card"><span class="tool-emoji">🔍</span><span class="tool-name">Regex Tester</span><span class="tool-desc">Live pattern matching with match highlighting and flags.</span><span class="arrow">↗</span></a>
+    <a href="cron/" class="tool-card"><span class="tool-emoji">🕰️</span><span class="tool-name">Cron Parser</span><span class="tool-desc">Paste a cron expression and get plain English back.</span><span class="arrow">↗</span></a>
+    <a href="hash/" class="tool-card"><span class="tool-emoji">#️⃣</span><span class="tool-name">Hash Generator</span><span class="tool-desc">Generate MD5, SHA-1, SHA-256, SHA-384 and SHA-512 hashes.</span><span class="arrow">↗</span></a>
+    <a href="uuid/" class="tool-card"><span class="tool-emoji">🆔</span><span class="tool-name">UUID Generator</span><span class="tool-desc">Generate v4 UUIDs individually or in batches, with format options.</span><span class="arrow">↗</span></a>
+    <a href="timestamp/" class="tool-card"><span class="tool-emoji">🕐</span><span class="tool-name">Timestamp</span><span class="tool-desc">Convert Unix timestamps to human dates and back again.</span><span class="arrow">↗</span></a>
+  </div>
+
+  <p class="section-label">Text Tools</p>
+  <div class="grid">
+    <a href="word-count/" class="tool-card"><span class="tool-emoji">📝</span><span class="tool-name">Word Counter</span><span class="tool-desc">Words, characters, sentences, paragraphs, and reading time.</span><span class="arrow">↗</span></a>
+    <a href="case-converter/" class="tool-card"><span class="tool-emoji">🔤</span><span class="tool-name">Case Converter</span><span class="tool-desc">camelCase, snake_case, kebab-case, Title Case and more.</span><span class="arrow">↗</span></a>
+    <a href="diff/" class="tool-card"><span class="tool-emoji">↕️</span><span class="tool-name">Diff Checker</span><span class="tool-desc">Paste two blocks of text and see what changed line by line.</span><span class="arrow">↗</span></a>
+    <a href="lorem/" class="tool-card"><span class="tool-emoji">📄</span><span class="tool-name">Lorem Ipsum</span><span class="tool-desc">Generate placeholder text by word, sentence, or paragraph.</span><span class="arrow">↗</span></a>
+    <a href="markdown/" class="tool-card"><span class="tool-emoji">✍️</span><span class="tool-name">Markdown</span><span class="tool-desc">Live markdown editor with side-by-side preview.</span><span class="arrow">↗</span></a>
+  </div>
+
+  <p class="section-label">Calculators</p>
+  <div class="grid">
+    <a href="unit-converter/" class="tool-card"><span class="tool-emoji">📐</span><span class="tool-name">Unit Converter</span><span class="tool-desc">Length, weight, temperature, speed, data, area, and volume.</span><span class="arrow">↗</span></a>
+    <a href="aspect-ratio/" class="tool-card"><span class="tool-emoji">🖼️</span><span class="tool-name">Aspect Ratio</span><span class="tool-desc">Solve for missing dimensions and simplify ratios.</span><span class="arrow">↗</span></a>
+    <a href="percentage/" class="tool-card"><span class="tool-emoji">💯</span><span class="tool-name">Percentage</span><span class="tool-desc">Three percentage calculators — of, what %, and change.</span><span class="arrow">↗</span></a>
+    <a href="colour/" class="tool-card"><span class="tool-emoji">🎨</span><span class="tool-name">Colour Converter</span><span class="tool-desc">Convert between hex, RGB and HSL with a live colour picker.</span><span class="arrow">↗</span></a>
+  </div>
+
+  <p class="section-label">Security</p>
+  <div class="grid">
+    <a href="password/" class="tool-card"><span class="tool-emoji">🔐</span><span class="tool-name">Password Generator</span><span class="tool-desc">Generate secure passwords with custom length and character sets.</span><span class="arrow">↗</span></a>
+    <a href="password-strength/" class="tool-card"><span class="tool-emoji">🛡️</span><span class="tool-name">Password Strength</span><span class="tool-desc">Analyse a password's strength, entropy, and estimated crack time.</span><span class="arrow">↗</span></a>
+  </div>
+
+  <footer class="site-footer">No tracking &nbsp;·&nbsp; No ads &nbsp;·&nbsp; No nonsense</footer>
 </body>
 </html>

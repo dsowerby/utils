@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unit Converter — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .tabs { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .tab { font-family: 'Space Mono', monospace; font-size: 0.65rem; padding: 0.4rem 0.85rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.08em; text-transform: uppercase; }
+    .tab.active { background: var(--accent); color: #0e0e10; border-color: var(--accent); }
+    .converter { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    input[type="number"] { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 1rem; padding: 0.75rem 0.9rem; outline: none; transition: border-color 0.2s; width: 130px; }
+    input[type="number"]:focus { border-color: var(--accent-dim); }
+    select { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.82rem; padding: 0.75rem 0.9rem; outline: none; transition: border-color 0.2s; cursor: pointer; }
+    select:focus { border-color: var(--accent-dim); }
+    .arrow { color: var(--muted); font-size: 1.1rem; }
+    .results { display: flex; flex-direction: column; gap: 0.5rem; }
+    .result-row { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .result-unit { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); }
+    .result-val { font-family: 'Space Mono', monospace; font-size: 0.95rem; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Unit Converter <span>/ length · weight · temp · data</span></h1></header>
+    <div class="tabs" id="tabs"></div>
+    <div class="converter">
+      <input type="number" id="val" value="1" oninput="convert()">
+      <select id="from" onchange="convert()"></select>
+      <span class="arrow">→</span>
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+  <script>
+    const CATS = {
+      Length: { base:'m', units:{ mm:0.001, cm:0.01, m:1, km:1000, in:0.0254, ft:0.3048, yd:0.9144, mi:1609.344 } },
+      Weight: { base:'kg', units:{ mg:0.000001, g:0.001, kg:1, t:1000, oz:0.0283495, lb:0.453592, st:6.35029 } },
+      Temperature: { special:true, units:['°C','°F','K'] },
+      Speed: { base:'m/s', units:{ 'km/h':0.277778, 'mph':0.44704, 'm/s':1, 'knot':0.514444 } },
+      Data: { base:'B', units:{ B:1, KB:1024, MB:1048576, GB:1073741824, TB:1099511627776 } },
+      Area: { base:'m²', units:{ 'mm²':0.000001, 'cm²':0.0001, 'm²':1, 'km²':1e6, 'in²':0.00064516, 'ft²':0.092903, 'acre':4046.86, 'ha':10000 } },
+      Volume: { base:'L', units:{ mL:0.001, L:1, m³:1000, tsp:0.00492892, tbsp:0.0147868, 'fl oz':0.0295735, cup:0.236588, pt:0.473176, qt:0.946353, gal:3.78541 } },
+    };
+    let currentCat = 'Length';
+    function renderTabs() {
+      document.getElementById('tabs').innerHTML = Object.keys(CATS).map(k=>`<button class="tab${k===currentCat?' active':''}" onclick="setCat('${k}')">${k}</button>`).join('');
+    }
+    function setCat(c) { currentCat=c; renderTabs(); renderFrom(); convert(); }
+    function renderFrom() {
+      const cat=CATS[currentCat]; const sel=document.getElementById('from'); sel.innerHTML='';
+      const units=cat.special?cat.units:Object.keys(cat.units);
+      units.forEach(u=>{ const o=document.createElement('option'); o.value=u; o.textContent=u; sel.appendChild(o); });
+    }
+    function convert() {
+      const val=+document.getElementById('val').value; const from=document.getElementById('from').value;
+      const cat=CATS[currentCat]; const res=document.getElementById('results'); res.innerHTML='';
+      const units=cat.special?cat.units:Object.keys(cat.units);
+      units.forEach(to=>{
+        if(to===from) return;
+        let result;
+        if(cat.special) {
+          if(from==='°C'&&to==='°F') result=val*9/5+32;
+          else if(from==='°C'&&to==='K') result=val+273.15;
+          else if(from==='°F'&&to==='°C') result=(val-32)*5/9;
+          else if(from==='°F'&&to==='K') result=(val-32)*5/9+273.15;
+          else if(from==='K'&&to==='°C') result=val-273.15;
+          else if(from==='K'&&to==='°F') result=(val-273.15)*9/5+32;
+        } else { result = val * cat.units[from] / cat.units[to]; }
+        const fmt = Math.abs(result) >= 0.001 && Math.abs(result) < 1e9 ? +result.toPrecision(7) : result.toExponential(4);
+        res.innerHTML+=`<div class="result-row"><span class="result-unit">${to}</span><span class="result-val">${fmt}</span></div>`;
+      });
+    }
+    renderTabs(); renderFrom(); convert();
+  </script>
+</body>
+</html>

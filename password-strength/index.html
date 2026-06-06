@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Strength — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 0.6rem; } h1 span { color: var(--muted); }
+    .note { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.75rem; }
+    .input-wrap { position: relative; margin-bottom: 1.25rem; }
+    input[type="text"], input[type="password"] { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 1rem; padding: 0.85rem 3rem 0.85rem 1rem; outline: none; transition: border-color 0.2s; }
+    input:focus { border-color: var(--accent-dim); }
+    .toggle-vis { position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 0.85rem; padding: 0; transition: color 0.15s; }
+    .toggle-vis:hover { color: var(--text); }
+    .bar-wrap { height: 6px; background: var(--border); border-radius: 3px; margin-bottom: 0.5rem; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s, background 0.4s; }
+    .strength-label { font-family: 'Space Mono', monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.5rem; }
+    .divider { height: 1px; background: var(--border); margin: 0 0 1.5rem; }
+    .check-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .check-item { display: flex; align-items: center; gap: 0.75rem; font-size: 0.88rem; }
+    .check-icon { font-family: 'Space Mono', monospace; font-size: 0.75rem; width: 18px; text-align: center; }
+    .check-icon.pass { color: var(--good); }
+    .check-icon.fail { color: var(--muted); }
+    .crack-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; }
+    .crack-label { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+    .crack-val { font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Password Strength <span>/ analyser</span></h1></header>
+    <p class="note">Checked entirely in your browser. Nothing is sent anywhere.</p>
+    <div class="input-wrap">
+      <input type="password" id="pw" placeholder="Type a password to analyse…" oninput="analyse()" autocomplete="off" spellcheck="false">
+      <button class="toggle-vis" onclick="toggleVis()" id="visBtn" title="Show/hide">👁</button>
+    </div>
+    <div class="bar-wrap"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    <p class="strength-label" id="strengthLabel" style="color:var(--muted)">—</p>
+    <div class="divider"></div>
+    <div class="check-list" id="checkList"></div>
+    <div class="crack-box">
+      <p class="crack-label">Estimated crack time (offline, fast hashing)</p>
+      <p class="crack-val" id="crackTime">—</p>
+    </div>
+  </div>
+  <script>
+    const CHECKS = [
+      { id:'len8', label:'At least 8 characters', fn:p=>p.length>=8 },
+      { id:'len12', label:'At least 12 characters', fn:p=>p.length>=12 },
+      { id:'len16', label:'At least 16 characters', fn:p=>p.length>=16 },
+      { id:'upper', label:'Contains uppercase letters (A–Z)', fn:p=>/[A-Z]/.test(p) },
+      { id:'lower', label:'Contains lowercase letters (a–z)', fn:p=>/[a-z]/.test(p) },
+      { id:'num', label:'Contains numbers (0–9)', fn:p=>/[0-9]/.test(p) },
+      { id:'sym', label:'Contains symbols (!@#…)', fn:p=>/[^A-Za-z0-9]/.test(p) },
+      { id:'rep', label:'No repeated characters (aaa)', fn:p=>!/(.)\1{2}/.test(p) },
+      { id:'seq', label:'No simple sequences (123, abc)', fn:p=>!/(012|123|234|345|456|567|678|789|890|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i.test(p) },
+    ];
+    function entropy(p) {
+      let pool=0;
+      if(/[a-z]/.test(p)) pool+=26;
+      if(/[A-Z]/.test(p)) pool+=26;
+      if(/[0-9]/.test(p)) pool+=10;
+      if(/[^A-Za-z0-9]/.test(p)) pool+=32;
+      return p.length * Math.log2(pool||1);
+    }
+    function crackTime(bits) {
+      const guesses=Math.pow(2,bits);
+      const rate=1e10; // 10 billion/sec
+      const secs=guesses/rate;
+      if(secs<1) return 'Instantly';
+      if(secs<60) return Math.round(secs)+' seconds';
+      if(secs<3600) return Math.round(secs/60)+' minutes';
+      if(secs<86400) return Math.round(secs/3600)+' hours';
+      if(secs<31536000) return Math.round(secs/86400)+' days';
+      if(secs<3153600000) return Math.round(secs/31536000)+' years';
+      return 'Centuries';
+    }
+    function analyse() {
+      const p=document.getElementById('pw').value;
+      const results=CHECKS.map(c=>({...c,pass:c.fn(p)}));
+      document.getElementById('checkList').innerHTML=results.map(r=>`
+        <div class="check-item">
+          <span class="check-icon ${r.pass?'pass':'fail'}">${r.pass?'✓':'○'}</span>
+          <span style="color:${r.pass?'var(--text)':'var(--muted)'}">${r.label}</span>
+        </div>`).join('');
+      const score=results.filter(r=>r.pass).length;
+      const pct=Math.round(score/results.length*100);
+      let color, label;
+      if(!p){color='var(--border)';label='—';}
+      else if(pct<=33){color='var(--danger)';label='Weak';}
+      else if(pct<=55){color='#ffa657';label='Fair';}
+      else if(pct<=77){color='var(--accent)';label='Strong';}
+      else{color='var(--good)';label='Very strong';}
+      document.getElementById('barFill').style.cssText=`width:${p?pct:0}%;background:${color}`;
+      document.getElementById('strengthLabel').style.color=color;
+      document.getElementById('strengthLabel').textContent=label;
+      const e=entropy(p);
+      document.getElementById('crackTime').textContent=p?crackTime(e)+` (${Math.round(e)} bits of entropy)`:'—';
+    }
+    function toggleVis() {
+      const el=document.getElementById('pw');
+      el.type=el.type==='password'?'text':'password';
+    }
+    analyse();
+  </script>
+</body>
+</html>

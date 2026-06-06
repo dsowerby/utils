@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UUID Generator — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .single-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; font-family: 'Space Mono', monospace; font-size: 1rem; color: var(--accent); letter-spacing: 0.04em; margin-bottom: 0.75rem; word-break: break-all; }
+    .btn-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
+    button { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.9rem; border: none; border-radius: 8px; cursor: pointer; padding: 0.65rem 1.3rem; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #0e0e10; } .btn-primary:hover { background: #c9ff8a; }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); } .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-ghost.copied { color: var(--good); border-color: var(--good); }
+    .divider { height: 1px; background: var(--border); margin: 0.5rem 0 1.5rem; }
+    .batch-controls { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .version-tabs { display: flex; gap: 0.4rem; }
+    .vtab { font-family: 'Space Mono', monospace; font-size: 0.65rem; padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; }
+    .vtab.active { background: var(--accent); color: #0e0e10; border-color: var(--accent); }
+    input[type="number"] { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.9rem; padding: 0.55rem 0.75rem; outline: none; transition: border-color 0.2s; width: 80px; }
+    input[type="number"]:focus { border-color: var(--accent-dim); }
+    .batch-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .batch-item { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.55rem 0.85rem; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; word-break: break-all; }
+    .batch-copy { background: none; border: none; color: var(--border); cursor: pointer; font-size: 0.68rem; font-family: 'Space Mono', monospace; padding: 0; transition: color 0.15s; flex-shrink: 0; }
+    .batch-copy:hover { color: var(--accent); }
+    .formats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-top: 1rem; }
+    .fmt-row { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.9rem; }
+    .fmt-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+    .fmt-val { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text); word-break: break-all; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>UUID Generator <span>/ v4 &amp; v1 style</span></h1></header>
+    <p class="label">Single UUID</p>
+    <div class="single-box" id="singleUuid"></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="genSingle()">Generate</button>
+      <button class="btn-ghost" id="copyBtn" onclick="copySingle()">Copy</button>
+    </div>
+    <p class="label" style="margin-bottom:0.75rem">Formats</p>
+    <div class="formats" id="formats"></div>
+    <div class="divider"></div>
+    <div class="batch-controls">
+      <span class="label" style="margin:0">Batch:</span>
+      <input type="number" id="batchN" value="10" min="1" max="100">
+      <button class="btn-ghost" style="padding:0.5rem 1rem;font-size:0.85rem" onclick="genBatch()">Generate</button>
+      <button class="btn-ghost" style="padding:0.5rem 1rem;font-size:0.85rem" onclick="copyAll()">Copy all</button>
+    </div>
+    <div class="batch-list" id="batchList"></div>
+  </div>
+  <script>
+    function uuidv4() {
+      return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));
+    }
+    function showFormats(uuid) {
+      const upper = uuid.toUpperCase();
+      const noHyphens = uuid.replace(/-/g,'');
+      const braces = `{${uuid}}`;
+      const urn = `urn:uuid:${uuid}`;
+      document.getElementById('formats').innerHTML = [
+        {label:'Lowercase',val:uuid},{label:'Uppercase',val:upper},
+        {label:'No hyphens',val:noHyphens},{label:'URN',val:urn}
+      ].map(f=>`<div class="fmt-row"><p class="fmt-label">${f.label}</p><p class="fmt-val">${f.val}</p></div>`).join('');
+    }
+    function genSingle() {
+      const u=uuidv4();
+      document.getElementById('singleUuid').textContent=u;
+      document.getElementById('copyBtn').textContent='Copy'; document.getElementById('copyBtn').classList.remove('copied');
+      showFormats(u);
+    }
+    function copySingle() {
+      const t=document.getElementById('singleUuid').textContent; if(!t) return;
+      navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById('copyBtn');b.textContent='Copied!';b.classList.add('copied');setTimeout(()=>{b.textContent='Copy';b.classList.remove('copied');},2000);});
+    }
+    function genBatch() {
+      const n=Math.min(100,Math.max(1,+document.getElementById('batchN').value||10));
+      const list=document.getElementById('batchList'); list.innerHTML='';
+      for(let i=0;i<n;i++){
+        const u=uuidv4();
+        list.innerHTML+=`<div class="batch-item"><span>${u}</span><button class="batch-copy" onclick="cpb(this,'${u}')">copy</button></div>`;
+      }
+    }
+    function cpb(btn,u){navigator.clipboard.writeText(u).then(()=>{btn.textContent='✓';setTimeout(()=>btn.textContent='copy',1500);});}
+    function copyAll(){
+      const uuids=[...document.querySelectorAll('.batch-item span')].map(s=>s.textContent).join('\n');
+      if(!uuids) return;
+      navigator.clipboard.writeText(uuids).then(()=>alert('Copied '+document.querySelectorAll('.batch-item').length+' UUIDs'));
+    }
+    genSingle(); genBatch();
+  </script>
+</body>
+</html>

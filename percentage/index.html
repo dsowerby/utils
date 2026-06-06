@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Percentage Calculator — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .block { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .block-title { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .text { font-size: 0.9rem; color: var(--muted); white-space: nowrap; }
+    input[type="number"] { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.95rem; padding: 0.6rem 0.8rem; outline: none; transition: border-color 0.2s; width: 110px; }
+    input[type="number"]:focus { border-color: var(--accent-dim); }
+    .answer { font-family: 'Space Mono', monospace; font-size: 1.4rem; color: var(--accent); font-weight: 700; margin-top: 0.75rem; min-height: 1.8em; }
+    .answer.negative { color: #ff6b6b; }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Percentage Calculator <span>/ three ways</span></h1></header>
+
+    <div class="block">
+      <p class="block-title">What is X% of Y?</p>
+      <div class="row">
+        <span class="text">What is</span>
+        <input type="number" id="a1" placeholder="25" oninput="calc1()">
+        <span class="text">% of</span>
+        <input type="number" id="b1" placeholder="200" oninput="calc1()">
+        <span class="text">?</span>
+      </div>
+      <div class="answer" id="r1"></div>
+    </div>
+
+    <div class="block">
+      <p class="block-title">X is what % of Y?</p>
+      <div class="row">
+        <input type="number" id="a2" placeholder="50" oninput="calc2()">
+        <span class="text">is what % of</span>
+        <input type="number" id="b2" placeholder="200" oninput="calc2()">
+        <span class="text">?</span>
+      </div>
+      <div class="answer" id="r2"></div>
+    </div>
+
+    <div class="block">
+      <p class="block-title">Percentage change from X to Y</p>
+      <div class="row">
+        <span class="text">From</span>
+        <input type="number" id="a3" placeholder="100" oninput="calc3()">
+        <span class="text">to</span>
+        <input type="number" id="b3" placeholder="150" oninput="calc3()">
+      </div>
+      <div class="answer" id="r3"></div>
+    </div>
+  </div>
+  <script>
+    function fmt(n){return Math.round(n*10000)/10000;}
+    function calc1(){const a=+document.getElementById('a1').value,b=+document.getElementById('b1').value,r=document.getElementById('r1');if(isNaN(a)||isNaN(b)||!b&&b!==0)return;r.textContent=fmt(a/100*b);}
+    function calc2(){const a=+document.getElementById('a2').value,b=+document.getElementById('b2').value,r=document.getElementById('r2');if(!b)return;r.textContent=fmt(a/b*100)+'%';}
+    function calc3(){
+      const a=+document.getElementById('a3').value,b=+document.getElementById('b3').value,r=document.getElementById('r3');
+      if(!a)return;const pct=fmt((b-a)/Math.abs(a)*100);
+      r.className='answer'+(pct<0?' negative':'');
+      r.textContent=(pct>=0?'▲ +':'▼ ')+pct+'%';
+    }
+  </script>
+</body>
+</html>

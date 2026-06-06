@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cron Parser — utils</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap');
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; --danger: #ff6b6b; --good: #6effb4; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem; }
+    .back { align-self: flex-start; margin-bottom: 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.15s; }
+    .back:hover { color: var(--accent); }
+    .card { width: 100%; max-width: 680px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem; box-shadow: 0 0 60px rgba(180,255,110,0.04); }
+    .eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+    h1 { font-size: 1.6rem; font-weight: 500; margin-bottom: 2rem; } h1 span { color: var(--muted); }
+    .label { font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .input-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
+    input[type="text"] { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.9rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; letter-spacing: 0.05em; }
+    input[type="text"]:focus { border-color: var(--accent-dim); }
+    .error { color: var(--danger); font-size: 0.78rem; font-family: 'Space Mono', monospace; min-height: 1.2em; margin-bottom: 1rem; }
+    .result-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .human { font-size: 1.1rem; color: var(--accent); font-weight: 500; line-height: 1.5; margin-bottom: 0.75rem; }
+    .parts-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+    .part { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; text-align: center; }
+    .part-val { font-family: 'Space Mono', monospace; font-size: 0.9rem; color: var(--accent); }
+    .part-name { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-top: 0.25rem; }
+    .divider { height: 1px; background: var(--border); margin: 1.25rem 0; }
+    .next-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .next-item { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem 0.85rem; }
+    .next-item span { color: var(--text); }
+    .presets { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .preset { background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.65rem; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em; }
+    .preset:hover { color: var(--text); border-color: var(--muted); }
+  </style>
+</head>
+<body>
+  <a class="back" href="../">← utils</a>
+  <div class="card">
+    <header><p class="eyebrow">Utility</p><h1>Cron Parser <span>/ plain English</span></h1></header>
+    <p class="label" style="margin-bottom:0.5rem">Expression</p>
+    <div class="input-row"><input type="text" id="cronInput" placeholder="*/5 * * * *" oninput="parse()"></div>
+    <p class="error" id="err"></p>
+    <p class="label" style="margin-bottom:0.5rem">Presets</p>
+    <div class="presets">
+      <button class="preset" onclick="set('* * * * *')">Every minute</button>
+      <button class="preset" onclick="set('*/5 * * * *')">Every 5 min</button>
+      <button class="preset" onclick="set('0 * * * *')">Every hour</button>
+      <button class="preset" onclick="set('0 9 * * *')">Daily 9am</button>
+      <button class="preset" onclick="set('0 9 * * 1-5')">Weekdays 9am</button>
+      <button class="preset" onclick="set('0 0 * * 0')">Weekly Sunday</button>
+      <button class="preset" onclick="set('0 0 1 * *')">Monthly</button>
+      <button class="preset" onclick="set('0 0 1 1 *')">Yearly</button>
+    </div>
+    <div id="result" style="display:none">
+      <div class="result-box">
+        <p class="human" id="human"></p>
+        <div class="parts-grid" id="partsGrid"></div>
+      </div>
+      <div class="divider"></div>
+      <p class="label" style="margin-bottom:0.75rem">Next 5 runs (approximate)</p>
+      <div class="next-list" id="nextList"></div>
+    </div>
+  </div>
+  <script>
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    function set(v) { document.getElementById('cronInput').value=v; parse(); }
+    function parse() {
+      const raw = document.getElementById('cronInput').value.trim();
+      document.getElementById('err').textContent = '';
+      document.getElementById('result').style.display = 'none';
+      if (!raw) return;
+      const parts = raw.split(/\s+/);
+      if (parts.length !== 5) { document.getElementById('err').textContent = 'Expected 5 fields: minute hour day month weekday'; return; }
+      const [min, hr, dom, mon, dow] = parts;
+      const names = ['Minute','Hour','Day','Month','Weekday'];
+      document.getElementById('partsGrid').innerHTML = parts.map((p,i)=>`<div class="part"><div class="part-val">${p}</div><div class="part-name">${names[i]}</div></div>`).join('');
+      document.getElementById('human').textContent = toEnglish(min, hr, dom, mon, dow);
+      document.getElementById('nextList').innerHTML = nextRuns(parts).map(d=>`<div class="next-item"><span>${d}</span></div>`).join('');
+      document.getElementById('result').style.display = 'block';
+    }
+    function toEnglish(min, hr, dom, mon, dow) {
+      if (min==='*'&&hr==='*'&&dom==='*'&&mon==='*'&&dow==='*') return 'Every minute';
+      let s = '';
+      // minute
+      if (min.startsWith('*/')) s = `Every ${min.slice(2)} minutes`;
+      else if (min==='*') s = 'Every minute';
+      else s = `At minute ${min}`;
+      // hour
+      if (hr.startsWith('*/')) s += `, every ${hr.slice(2)} hours`;
+      else if (hr!=='*') s += ` past hour ${hr}`;
+      // dom
+      if (dom!=='*'&&!dom.startsWith('*/')) s += `, on day ${dom} of the month`;
+      // month
+      if (mon!=='*') { const ms=mon.split(',').map(m=>MONTHS[(+m)-1]||m); s+=`, in ${ms.join(' and ')}`; }
+      // dow
+      if (dow!=='*') {
+        if (dow==='1-5') s+=', Monday to Friday';
+        else if (dow==='0,6'||dow==='6,0') s+=', on weekends';
+        else { const ds=dow.split(',').map(d=>DAYS[+d]||d); s+=`, on ${ds.join(' and ')}`; }
+      }
+      return s.charAt(0).toUpperCase()+s.slice(1);
+    }
+    function nextRuns(parts) {
+      // Simple approximation — iterate minutes from now
+      const results = []; let d = new Date(); d.setSeconds(0,0); d.setMinutes(d.getMinutes()+1);
+      const [min,hr,dom,mon,dow] = parts;
+      for (let i=0; i<10000 && results.length<5; i++) {
+        if (matches(d.getMinutes(),min) && matches(d.getHours(),hr) && matches(d.getDate(),dom) && matches(d.getMonth()+1,mon) && matches(d.getDay(),dow))
+          results.push(d.toLocaleString());
+        d = new Date(d.getTime()+60000);
+      }
+      return results;
+    }
+    function matches(val, expr) {
+      if (expr==='*') return true;
+      if (expr.startsWith('*/')) return val % +expr.slice(2) === 0;
+      return expr.split(',').some(p => { if (p.includes('-')) { const [a,b]=p.split('-'); return val>=+a&&val<=+b; } return +p===val; });
+    }
+    parse();
+  </script>
+</body>
+</html>
