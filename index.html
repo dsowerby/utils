@@ -9,19 +9,42 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --bg: #0e0e10; --surface: #18181c; --border: #2a2a32; --accent: #b4ff6e; --accent-dim: #7ab844; --text: #e8e8ee; --muted: #6b6b7a; }
     body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; padding: 4rem 1.5rem 6rem; }
-    .site-header { max-width: 900px; margin: 0 auto 3.5rem; }
+    .site-header { max-width: 900px; margin: 0 auto 2rem; }
     .site-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
     .site-title { font-family: 'Space Mono', monospace; font-size: 2.4rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.75rem; }
     .site-desc { font-size: 1rem; color: var(--muted); font-weight: 300; max-width: 480px; line-height: 1.6; }
-    .section-label { max-width: 900px; margin: 0 auto 0.85rem; font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); padding-left: 0.1rem; }
-    .grid { max-width: 900px; margin: 0 auto 2.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.85rem; }
-    .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.35rem; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.65rem; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s; position: relative; }
+
+    /* Search */
+    .search-wrap { max-width: 900px; margin: 0 auto 2.5rem; position: relative; }
+    .search-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 1rem; padding: 0.85rem 1rem 0.85rem 2.85rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    .search-input:focus { border-color: var(--accent-dim); box-shadow: 0 0 0 3px rgba(180,255,110,0.08); }
+    .search-input::placeholder { color: var(--muted); }
+    .search-icon { position: absolute; left: 0.95rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.95rem; pointer-events: none; }
+    .search-clear { position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 0; line-height: 1; display: none; transition: color 0.15s; }
+    .search-clear:hover { color: var(--text); }
+    .search-count { max-width: 900px; margin: -1.5rem auto 1.5rem; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: var(--muted); display: none; }
+
+    /* Sections */
+    .section-label { max-width: 900px; margin: 0 auto 0.85rem; font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); padding-left: 0.1rem; transition: opacity 0.2s; }
+    .section-block { margin-bottom: 2.5rem; }
+    .section-block.hidden { display: none; }
+    .grid { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.85rem; }
+
+    /* Cards */
+    .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.35rem; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.65rem; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s, opacity 0.2s; position: relative; }
     .tool-card:hover { border-color: var(--accent-dim); box-shadow: 0 0 28px rgba(180,255,110,0.07); transform: translateY(-2px); }
+    .tool-card.hidden { display: none; }
     .tool-emoji { font-size: 1.6rem; line-height: 1; }
     .tool-name { font-family: 'Space Mono', monospace; font-size: 0.82rem; font-weight: 700; color: var(--text); }
     .tool-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; flex: 1; }
     .arrow { position: absolute; bottom: 1.1rem; right: 1.1rem; font-size: 0.8rem; color: var(--border); transition: color 0.2s, transform 0.2s; }
     .tool-card:hover .arrow { color: var(--accent); transform: translate(2px,-2px); }
+
+    /* No results */
+    .no-results { max-width: 900px; margin: 0 auto; display: none; text-align: center; padding: 3rem 0; }
+    .no-results p { font-family: 'Space Mono', monospace; font-size: 0.82rem; color: var(--muted); }
+    .no-results .big { font-size: 2rem; margin-bottom: 0.75rem; }
+
     .site-footer { max-width: 900px; margin: 2rem auto 0; font-family: 'Space Mono', monospace; font-size: 0.62rem; letter-spacing: 0.1em; color: var(--border); text-transform: uppercase; }
   </style>
 </head>
@@ -32,49 +55,228 @@
     <p class="site-desc">Small, focused tools for the web. No accounts, no tracking, no fluff.</p>
   </header>
 
-  <p class="section-label">Web &amp; Privacy</p>
-  <div class="grid">
-    <a href="clean-url/" class="tool-card"><span class="tool-emoji">🧹</span><span class="tool-name">URL Cleaner</span><span class="tool-desc">Strip UTM tags, click IDs and tracking parameters from URLs.</span><span class="arrow">↗</span></a>
-    <a href="url-encode/" class="tool-card"><span class="tool-emoji">🔗</span><span class="tool-name">URL Encoder</span><span class="tool-desc">Encode and decode URL components — %20 and friends.</span><span class="arrow">↗</span></a>
-    <a href="user-agent/" class="tool-card"><span class="tool-emoji">🕵️</span><span class="tool-name">User Agent</span><span class="tool-desc">See what your browser reveals — OS, engine, device, memory.</span><span class="arrow">↗</span></a>
-    <a href="qr-code/" class="tool-card"><span class="tool-emoji">◼</span><span class="tool-name">QR Code</span><span class="tool-desc">Generate a scannable QR code from any URL or text.</span><span class="arrow">↗</span></a>
+  <div class="search-wrap">
+    <span class="search-icon">🔎</span>
+    <input class="search-input" type="text" id="searchInput" placeholder="Search tools…" autocomplete="off" spellcheck="false" oninput="search()">
+    <button class="search-clear" id="searchClear" onclick="clearSearch()" title="Clear">✕</button>
+  </div>
+  <p class="search-count" id="searchCount"></p>
+
+  <div class="section-block" data-section="Web &amp; Privacy">
+    <p class="section-label">Web &amp; Privacy</p>
+    <div class="grid">
+      <a href="clean-url/" class="tool-card" data-keywords="utm fbclid tracking tracker parameters strip remove facebook google analytics campaign affiliate link share referrer cleaner">
+        <span class="tool-emoji">🧹</span><span class="tool-name">URL Cleaner</span>
+        <span class="tool-desc">Strip UTM tags, click IDs and tracking parameters from URLs.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="url-encode/" class="tool-card" data-keywords="percent encoding decode special characters uri escape unescape query string space plus sign ampersand">
+        <span class="tool-emoji">🔗</span><span class="tool-name">URL Encoder</span>
+        <span class="tool-desc">Encode and decode URL components — %20 and friends.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="user-agent/" class="tool-card" data-keywords="browser detect chrome firefox safari opera edge os windows mac linux android ios device mobile desktop tablet engine webkit blink gecko hardware memory cores touch">
+        <span class="tool-emoji">🕵️</span><span class="tool-name">User Agent</span>
+        <span class="tool-desc">See what your browser reveals — OS, engine, device, memory.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="qr-code/" class="tool-card" data-keywords="barcode scan image png download link wifi vcard contact share generate">
+        <span class="tool-emoji">◼</span><span class="tool-name">QR Code</span>
+        <span class="tool-desc">Generate a scannable QR code from any URL or text.</span>
+        <span class="arrow">↗</span>
+      </a>
+    </div>
   </div>
 
-  <p class="section-label">Developer Tools</p>
-  <div class="grid">
-    <a href="base64/" class="tool-card"><span class="tool-emoji">🔢</span><span class="tool-name">Base64</span><span class="tool-desc">Encode and decode Base64 strings in your browser.</span><span class="arrow">↗</span></a>
-    <a href="json/" class="tool-card"><span class="tool-emoji">📋</span><span class="tool-name">JSON Formatter</span><span class="tool-desc">Prettify, minify, or validate JSON with syntax highlighting.</span><span class="arrow">↗</span></a>
-    <a href="jwt/" class="tool-card"><span class="tool-emoji">🎫</span><span class="tool-name">JWT Decoder</span><span class="tool-desc">Decode a JSON Web Token and inspect header and payload.</span><span class="arrow">↗</span></a>
-    <a href="regex/" class="tool-card"><span class="tool-emoji">🔍</span><span class="tool-name">Regex Tester</span><span class="tool-desc">Live pattern matching with match highlighting and flags.</span><span class="arrow">↗</span></a>
-    <a href="cron/" class="tool-card"><span class="tool-emoji">🕰️</span><span class="tool-name">Cron Parser</span><span class="tool-desc">Paste a cron expression and get plain English back.</span><span class="arrow">↗</span></a>
-    <a href="hash/" class="tool-card"><span class="tool-emoji">#️⃣</span><span class="tool-name">Hash Generator</span><span class="tool-desc">Generate MD5, SHA-1, SHA-256, SHA-384 and SHA-512 hashes.</span><span class="arrow">↗</span></a>
-    <a href="uuid/" class="tool-card"><span class="tool-emoji">🆔</span><span class="tool-name">UUID Generator</span><span class="tool-desc">Generate v4 UUIDs individually or in batches, with format options.</span><span class="arrow">↗</span></a>
-    <a href="timestamp/" class="tool-card"><span class="tool-emoji">🕐</span><span class="tool-name">Timestamp</span><span class="tool-desc">Convert Unix timestamps to human dates and back again.</span><span class="arrow">↗</span></a>
+  <div class="section-block" data-section="Developer Tools">
+    <p class="section-label">Developer Tools</p>
+    <div class="grid">
+      <a href="base64/" class="tool-card" data-keywords="encode decode binary text string convert btoa atob image data uri">
+        <span class="tool-emoji">🔢</span><span class="tool-name">Base64</span>
+        <span class="tool-desc">Encode and decode Base64 strings in your browser.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="json/" class="tool-card" data-keywords="prettify minify format validate lint pretty print indent parse object array syntax highlight beautify compress">
+        <span class="tool-emoji">📋</span><span class="tool-name">JSON Formatter</span>
+        <span class="tool-desc">Prettify, minify, or validate JSON with syntax highlighting.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="jwt/" class="tool-card" data-keywords="token auth authentication bearer decode header payload claims expiry iat exp alg bearer oauth access refresh">
+        <span class="tool-emoji">🎫</span><span class="tool-name">JWT Decoder</span>
+        <span class="tool-desc">Decode a JSON Web Token and inspect header and payload.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="regex/" class="tool-card" data-keywords="regular expression pattern match test find replace search highlight flags global case insensitive multiline groups capture lookahead">
+        <span class="tool-emoji">🔍</span><span class="tool-name">Regex Tester</span>
+        <span class="tool-desc">Live pattern matching with match highlighting and flags.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="cron/" class="tool-card" data-keywords="schedule job task schedule crontab expression minute hour day month weekday next run interval daily weekly monthly">
+        <span class="tool-emoji">🕰️</span><span class="tool-name">Cron Parser</span>
+        <span class="tool-desc">Paste a cron expression and get plain English back.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="hash/" class="tool-card" data-keywords="md5 sha sha1 sha256 sha512 sha384 checksum digest fingerprint integrity verify crypto cryptographic">
+        <span class="tool-emoji">#️⃣</span><span class="tool-name">Hash Generator</span>
+        <span class="tool-desc">Generate MD5, SHA-1, SHA-256, SHA-384 and SHA-512 hashes.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="uuid/" class="tool-card" data-keywords="guid unique id identifier v4 random generate batch bulk urn braces format">
+        <span class="tool-emoji">🆔</span><span class="tool-name">UUID Generator</span>
+        <span class="tool-desc">Generate v4 UUIDs individually or in batches, with format options.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="timestamp/" class="tool-card" data-keywords="unix epoch time date convert seconds milliseconds iso utc local now datetime format parse">
+        <span class="tool-emoji">🕐</span><span class="tool-name">Timestamp</span>
+        <span class="tool-desc">Convert Unix timestamps to human dates and back again.</span>
+        <span class="arrow">↗</span>
+      </a>
+    </div>
   </div>
 
-  <p class="section-label">Text Tools</p>
-  <div class="grid">
-    <a href="word-count/" class="tool-card"><span class="tool-emoji">📝</span><span class="tool-name">Word Counter</span><span class="tool-desc">Words, characters, sentences, paragraphs, and reading time.</span><span class="arrow">↗</span></a>
-    <a href="case-converter/" class="tool-card"><span class="tool-emoji">🔤</span><span class="tool-name">Case Converter</span><span class="tool-desc">camelCase, snake_case, kebab-case, Title Case and more.</span><span class="arrow">↗</span></a>
-    <a href="diff/" class="tool-card"><span class="tool-emoji">↕️</span><span class="tool-name">Diff Checker</span><span class="tool-desc">Paste two blocks of text and see what changed line by line.</span><span class="arrow">↗</span></a>
-    <a href="lorem/" class="tool-card"><span class="tool-emoji">📄</span><span class="tool-name">Lorem Ipsum</span><span class="tool-desc">Generate placeholder text by word, sentence, or paragraph.</span><span class="arrow">↗</span></a>
-    <a href="markdown/" class="tool-card"><span class="tool-emoji">✍️</span><span class="tool-name">Markdown</span><span class="tool-desc">Live markdown editor with side-by-side preview.</span><span class="arrow">↗</span></a>
+  <div class="section-block" data-section="Text Tools">
+    <p class="section-label">Text Tools</p>
+    <div class="grid">
+      <a href="word-count/" class="tool-card" data-keywords="words characters letters count reading time estimate speak speech paragraphs sentences lines length stats statistics">
+        <span class="tool-emoji">📝</span><span class="tool-name">Word Counter</span>
+        <span class="tool-desc">Words, characters, sentences, paragraphs, and reading time.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="case-converter/" class="tool-card" data-keywords="camel pascal snake kebab upper lower title sentence screaming train dot slug convert transform format string naming">
+        <span class="tool-emoji">🔤</span><span class="tool-name">Case Converter</span>
+        <span class="tool-desc">camelCase, snake_case, kebab-case, Title Case and more.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="diff/" class="tool-card" data-keywords="compare difference changes added removed line text before after delta patch version compare two strings">
+        <span class="tool-emoji">↕️</span><span class="tool-name">Diff Checker</span>
+        <span class="tool-desc">Paste two blocks of text and see what changed line by line.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="lorem/" class="tool-card" data-keywords="placeholder dummy filler sample copy text paragraph sentence word latin design mockup prototype">
+        <span class="tool-emoji">📄</span><span class="tool-name">Lorem Ipsum</span>
+        <span class="tool-desc">Generate placeholder text by word, sentence, or paragraph.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="markdown/" class="tool-card" data-keywords="md preview render html bold italic heading list code block quote link image table editor write">
+        <span class="tool-emoji">✍️</span><span class="tool-name">Markdown</span>
+        <span class="tool-desc">Live markdown editor with side-by-side preview.</span>
+        <span class="arrow">↗</span>
+      </a>
+    </div>
   </div>
 
-  <p class="section-label">Calculators</p>
-  <div class="grid">
-    <a href="unit-converter/" class="tool-card"><span class="tool-emoji">📐</span><span class="tool-name">Unit Converter</span><span class="tool-desc">Length, weight, temperature, speed, data, area, and volume.</span><span class="arrow">↗</span></a>
-    <a href="aspect-ratio/" class="tool-card"><span class="tool-emoji">🖼️</span><span class="tool-name">Aspect Ratio</span><span class="tool-desc">Solve for missing dimensions and simplify ratios.</span><span class="arrow">↗</span></a>
-    <a href="percentage/" class="tool-card"><span class="tool-emoji">💯</span><span class="tool-name">Percentage</span><span class="tool-desc">Three percentage calculators — of, what %, and change.</span><span class="arrow">↗</span></a>
-    <a href="colour/" class="tool-card"><span class="tool-emoji">🎨</span><span class="tool-name">Colour Converter</span><span class="tool-desc">Convert between hex, RGB and HSL with a live colour picker.</span><span class="arrow">↗</span></a>
+  <div class="section-block" data-section="Calculators">
+    <p class="section-label">Calculators</p>
+    <div class="grid">
+      <a href="unit-converter/" class="tool-card" data-keywords="length weight temperature speed data area volume mm cm m km inch foot yard mile kg lb oz gram celsius fahrenheit kelvin mph kph knot megabyte gigabyte hectare acre litre gallon pint">
+        <span class="tool-emoji">📐</span><span class="tool-name">Unit Converter</span>
+        <span class="tool-desc">Length, weight, temperature, speed, data, area, and volume.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="aspect-ratio/" class="tool-card" data-keywords="width height resize image video dimensions 16:9 4:3 1:1 widescreen portrait landscape scale ratio simplify">
+        <span class="tool-emoji">🖼️</span><span class="tool-name">Aspect Ratio</span>
+        <span class="tool-desc">Solve for missing dimensions and simplify ratios.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="percentage/" class="tool-card" data-keywords="percent increase decrease discount change of what fraction proportion calculate tax tip markup">
+        <span class="tool-emoji">💯</span><span class="tool-name">Percentage</span>
+        <span class="tool-desc">Three percentage calculators — of, what %, and change.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="colour/" class="tool-card" data-keywords="color hex rgb hsl picker convert web css value red green blue hue saturation lightness palette">
+        <span class="tool-emoji">🎨</span><span class="tool-name">Colour Converter</span>
+        <span class="tool-desc">Convert between hex, RGB and HSL with a live colour picker.</span>
+        <span class="arrow">↗</span>
+      </a>
+    </div>
   </div>
 
-  <p class="section-label">Security</p>
-  <div class="grid">
-    <a href="password/" class="tool-card"><span class="tool-emoji">🔐</span><span class="tool-name">Password Generator</span><span class="tool-desc">Generate secure passwords with custom length and character sets.</span><span class="arrow">↗</span></a>
-    <a href="password-strength/" class="tool-card"><span class="tool-emoji">🛡️</span><span class="tool-name">Password Strength</span><span class="tool-desc">Analyse a password's strength, entropy, and estimated crack time.</span><span class="arrow">↗</span></a>
+  <div class="section-block" data-section="Security">
+    <p class="section-label">Security</p>
+    <div class="grid">
+      <a href="password/" class="tool-card" data-keywords="random strong secure passphrase generate symbols numbers uppercase lowercase length batch bulk multiple">
+        <span class="tool-emoji">🔐</span><span class="tool-name">Password Generator</span>
+        <span class="tool-desc">Generate secure passwords with custom length and character sets.</span>
+        <span class="arrow">↗</span>
+      </a>
+      <a href="password-strength/" class="tool-card" data-keywords="analyse analyze check score entropy crack time weak strong secure bits complexity policy requirements">
+        <span class="tool-emoji">🛡️</span><span class="tool-name">Password Strength</span>
+        <span class="tool-desc">Analyse a password's strength, entropy, and estimated crack time.</span>
+        <span class="arrow">↗</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="no-results" id="noResults">
+    <p class="big">🔎</p>
+    <p>No tools matched "<span id="noResultsTerm"></span>"</p>
   </div>
 
   <footer class="site-footer">No tracking &nbsp;·&nbsp; No ads &nbsp;·&nbsp; No nonsense</footer>
+
+  <script>
+    function search() {
+      const raw = document.getElementById('searchInput').value;
+      const q = raw.trim().toLowerCase();
+      const clearBtn = document.getElementById('searchClear');
+      const countEl = document.getElementById('searchCount');
+      clearBtn.style.display = q ? 'block' : 'none';
+
+      if (!q) {
+        // Show everything, restore sections
+        document.querySelectorAll('.tool-card').forEach(c => c.classList.remove('hidden'));
+        document.querySelectorAll('.section-block').forEach(s => s.classList.remove('hidden'));
+        countEl.style.display = 'none';
+        document.getElementById('noResults').style.display = 'none';
+        return;
+      }
+
+      const terms = q.split(/\s+/).filter(Boolean);
+      let total = 0;
+
+      document.querySelectorAll('.section-block').forEach(section => {
+        let sectionVisible = 0;
+        section.querySelectorAll('.tool-card').forEach(card => {
+          const haystack = [
+            card.querySelector('.tool-name')?.textContent || '',
+            card.querySelector('.tool-desc')?.textContent || '',
+            card.dataset.keywords || '',
+          ].join(' ').toLowerCase();
+
+          const matches = terms.every(t => haystack.includes(t));
+          card.classList.toggle('hidden', !matches);
+          if (matches) sectionVisible++;
+        });
+
+        section.classList.toggle('hidden', sectionVisible === 0);
+        total += sectionVisible;
+      });
+
+      if (total === 0) {
+        document.getElementById('noResults').style.display = 'block';
+        document.getElementById('noResultsTerm').textContent = raw;
+        countEl.style.display = 'none';
+      } else {
+        document.getElementById('noResults').style.display = 'none';
+        countEl.style.display = 'block';
+        countEl.textContent = total + ' tool' + (total === 1 ? '' : 's') + ' matched';
+      }
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      search();
+      document.getElementById('searchInput').focus();
+    }
+
+    // Keyboard shortcut: / to focus search
+    document.addEventListener('keydown', e => {
+      if (e.key === '/' && document.activeElement !== document.getElementById('searchInput')) {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+      }
+      if (e.key === 'Escape') clearSearch();
+    });
+  </script>
 </body>
 </html>
