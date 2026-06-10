@@ -32,6 +32,31 @@
     .leg-dot { width: 8px; height: 8px; border-radius: 2px; }
     .leg-add { background: var(--add-text); } .leg-del { background: var(--del-text); }
   
+    /* Diff maximised layout */
+    .card.maximised {
+      display: flex;
+      flex-direction: column;
+    }
+    .card.maximised .panes {
+      flex: 1;
+      min-height: 0;
+    }
+    .card.maximised .panes > div {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .card.maximised textarea {
+      flex: 1;
+      height: auto;
+      min-height: 0;
+      resize: none;
+    }
+    .card.maximised #resultArea {
+      flex: 1;
+      overflow-y: auto;
+    }
+
     /* Maximise */
     .maximise-btn {
       position: absolute;
