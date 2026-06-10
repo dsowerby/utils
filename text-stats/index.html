@@ -36,11 +36,54 @@
     .freq-bar-wrap { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
     .freq-bar { height: 100%; background: var(--accent); border-radius: 3px; }
     .freq-count { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--muted); min-width: 30px; text-align: right; }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
 </head>
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header><p class="eyebrow">Utility</p><h1>Text Statistics <span>/ readability &amp; frequency</span></h1></header>
     <textarea id="input" placeholder="Paste text to analyse…" oninput="analyse()"></textarea>
     <div class="stats-grid" id="statsGrid"></div>
@@ -113,6 +156,21 @@
           <span class="freq-count">${c}</span>
         </div>`).join('');
     }
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>

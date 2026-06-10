@@ -29,6 +29,48 @@
     .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; padding: 0.45rem 1rem; border-radius: 6px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; margin-top: 0.75rem; }
     .copy-btn:hover { color: var(--text); border-color: var(--muted); }
     .copy-btn.copied { color: var(--good); border-color: var(--good); }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
   <link rel="apple-touch-icon" sizes="180x180" href="/utils/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/utils/favicon-32x32.png">
@@ -38,6 +80,7 @@
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header>
       <p class="eyebrow">Utility</p>
       <h1>User Agent Parser <span>/ what your browser reveals</span></h1>
@@ -113,6 +156,21 @@
     facts.forEach(f => {
       grid.innerHTML += `<div class="fact"><p class="fact-label">${f.label}</p><p class="fact-value accent">${f.value}</p></div>`;
     });
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>

@@ -24,6 +24,48 @@
     .reading-row { display: flex; gap: 1.5rem; flex-wrap: wrap; }
     .reading-item { font-size: 0.88rem; color: var(--muted); }
     .reading-item span { color: var(--text); font-weight: 500; }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
   <link rel="apple-touch-icon" sizes="180x180" href="/utils/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/utils/favicon-32x32.png">
@@ -33,6 +75,7 @@
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header><p class="eyebrow">Utility</p><h1>Word Counter <span>/ characters &amp; reading time</span></h1></header>
     <textarea id="input" placeholder="Paste or type your text here…" oninput="count()"></textarea>
     <div class="stats">
@@ -82,6 +125,21 @@
       if (mins < 60) return Math.round(mins) + ' min';
       return Math.floor(mins/60) + 'h ' + Math.round(mins%60) + 'm';
     }
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>

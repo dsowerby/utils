@@ -28,6 +28,48 @@
     .size-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
     input[type="range"] { -webkit-appearance: none; flex: 1; height: 4px; border-radius: 2px; background: var(--border); outline: none; }
     input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
   <link rel="apple-touch-icon" sizes="180x180" href="/utils/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/utils/favicon-32x32.png">
@@ -37,6 +79,7 @@
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header><p class="eyebrow">Utility</p><h1>QR Code Generator <span>/ url or text</span></h1></header>
     <textarea id="input" placeholder="Paste a URL or any text…" oninput="debouncedGenerate()"></textarea>
     <p class="label" style="margin-bottom:0.5rem">Size: <span id="sizeVal">256</span>px</p>
@@ -102,6 +145,21 @@
       const a = document.createElement('a');
       a.download = 'qrcode.png'; a.href = canvas.toDataURL(); a.click();
     }
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>

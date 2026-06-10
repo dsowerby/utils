@@ -25,6 +25,48 @@
     .copy-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); font-size: 0.68rem; padding: 0.25rem 0.6rem; border-radius: 5px; cursor: pointer; font-family: 'Space Mono', monospace; transition: all 0.15s; flex-shrink: 0; }
     .copy-btn:hover { color: var(--text); border-color: var(--muted); }
     .copy-btn.copied { color: var(--good); border-color: var(--good); }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
   <link rel="apple-touch-icon" sizes="180x180" href="/utils/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/utils/favicon-32x32.png">
@@ -34,6 +76,7 @@
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header><p class="eyebrow">Utility</p><h1>Hash Generator <span>/ MD5 · SHA family</span></h1></header>
     <p class="label">Input</p>
     <textarea id="input" placeholder="Type or paste text to hash…" oninput="hashAll()"></textarea>
@@ -93,6 +136,21 @@
     }
     function cp(i,btn){navigator.clipboard.writeText(document.getElementById('hv'+i).textContent).then(()=>{btn.textContent='Copied!';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied');},2000);});}
     hashAll();
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>

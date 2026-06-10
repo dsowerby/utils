@@ -35,6 +35,48 @@
     .fmt-row { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.9rem; }
     .fmt-label { font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
     .fmt-val { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--text); word-break: break-all; }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
   <link rel="apple-touch-icon" sizes="180x180" href="/utils/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/utils/favicon-32x32.png">
@@ -44,6 +86,7 @@
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header><p class="eyebrow">Utility</p><h1>UUID Generator <span>/ v4 &amp; v1 style</span></h1></header>
     <p class="label">Single UUID</p>
     <div class="single-box" id="singleUuid"></div>
@@ -101,6 +144,21 @@
       navigator.clipboard.writeText(uuids).then(()=>alert('Copied '+document.querySelectorAll('.batch-item').length+' UUIDs'));
     }
     genSingle(); genBatch();
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>

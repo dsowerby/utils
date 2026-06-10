@@ -38,11 +38,54 @@
     .shade-block:hover { flex: 1.4; }
     .shade-labels { display: flex; margin-top: 0.4rem; }
     .shade-label { flex: 1; text-align: center; font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--muted); }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
 </head>
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header><p class="eyebrow">Utility</p><h1>Colour Palette <span>/ harmony generator</span></h1></header>
     <div class="picker-row">
       <div><p class="label">Pick</p><input type="color" id="picker" value="#b4ff6e" oninput="syncFromPicker()"></div>
@@ -115,6 +158,21 @@
     function syncFromPicker() { const v=document.getElementById('picker').value; document.getElementById('hexIn').value=v; render(); }
     function syncFromHex() { const v=document.getElementById('hexIn').value.trim(); if(/^#[0-9a-f]{6}$/i.test(v)){document.getElementById('picker').value=v; render();} }
     render();
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>

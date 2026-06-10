@@ -34,6 +34,48 @@
     .preview th { background: var(--surface); color: var(--accent); }
     .preview strong { color: var(--text); font-weight: 600; }
     @media (max-width: 700px) { .panes { grid-template-columns: 1fr; } textarea,.preview { height: 40vh; } }
+  
+    /* Maximise */
+    .maximise-btn {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 7px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.15s;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .maximise-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+
+    .card { position: relative; }
+
+    .card.maximised {
+      position: fixed;
+      inset: 0;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 0;
+      border: none;
+      overflow-y: auto;
+      z-index: 1000;
+      margin: 0;
+      padding: 2rem 2.5rem;
+    }
+
+    body.maximised-body {
+      overflow: hidden;
+    }
   </style>
   <link rel="apple-touch-icon" sizes="180x180" href="/utils/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/utils/favicon-32x32.png">
@@ -43,6 +85,7 @@
 <body>
   <a class="back" href="../">← utils</a>
   <div class="card">
+      <button class="maximise-btn" onclick="toggleMaximise()" id="maxBtn" title="Maximise">⛶</button>
     <header><p class="eyebrow">Utility</p><h1>Markdown Previewer <span>/ live render</span></h1></header>
     <div class="panes">
       <div><p class="pane-label">Markdown</p><textarea id="input" placeholder="# Hello&#10;&#10;Type some **markdown** here…" oninput="render()"></textarea></div>
@@ -55,6 +98,21 @@
     function render() { document.getElementById('preview').innerHTML = marked.parse(document.getElementById('input').value); }
     document.getElementById('input').value = `# Welcome to Markdown Previewer\n\nType in the left pane and see a **live preview** on the right.\n\n## Features\n\n- Headings\n- **Bold** and *italic* text\n- \`inline code\`\n- [Links](https://example.com)\n- Tables, blockquotes, and more\n\n> Markdown is a lightweight markup language.\n\n\`\`\`js\nconst greet = name => \`Hello, \${name}!\`;\n\`\`\`\n`;
     render();
-  </script>
+  
+  function toggleMaximise() {
+    const card = document.querySelector('.card');
+    const btn = document.getElementById('maxBtn');
+    const isMax = card.classList.toggle('maximised');
+    document.body.classList.toggle('maximised-body', isMax);
+    btn.textContent = isMax ? '✕' : '⛶';
+    btn.title = isMax ? 'Restore' : 'Maximise';
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const card = document.querySelector('.card');
+      if (card.classList.contains('maximised')) toggleMaximise();
+    }
+  });
+</script>
 </body>
 </html>
